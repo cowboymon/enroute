@@ -1,0 +1,20 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Message {
+  id                   String    @id @default(cuid())
+  recipientEmail       String
+  body                 String
+  status               String    @default("PENDING_CHOICE") // PENDING_CHOICE | IN_TRANSIT | ARRIVED
+  chosenMethod         String?
+  arrivalAt            DateTime?
+  createdAt            DateTime  @default(now())
+  readAt               DateTime?
+  senderNotifiedReadAt DateTime?
+}
