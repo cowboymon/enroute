@@ -162,14 +162,30 @@ export default function MessageView({ id }: { id: string }) {
           Traveling by{" "}
           <span className="stamp">{method?.label ?? data.chosenMethod}</span>
         </p>
-        <div className="countdown">
-          {progress ? formatRemaining(progress.remainingMs) : "..."}
+        <div className="pixel-stopwatch-wrap">
+          <div className="pixel-stopwatch">
+            <div className="pixel-stopwatch-knob" />
+            <div className="pixel-stopwatch-body">
+              <div className="pixel-lcd">
+                {progress ? formatRemaining(progress.remainingMs) : "--:--"}
+              </div>
+              <div className="pixel-dots">
+                <span className="pixel-dot pixel-dot-green" />
+                <span className="pixel-dot pixel-dot-red" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="progress-track">
-          <div
-            className="progress-fill"
-            style={{ width: `${progress?.pct ?? 0}%` }}
-          />
+        <div className="pixel-progress" aria-hidden>
+          {Array.from({ length: 16 }).map((_, i) => {
+            const filled = (progress?.pct ?? 0) >= ((i + 1) / 16) * 100;
+            return (
+              <span
+                key={i}
+                className={`pixel-progress-seg${filled ? " is-filled" : ""}`}
+              />
+            );
+          })}
         </div>
         <p className="muted" style={{ marginTop: 12 }}>
           Come back anytime &mdash; your message will be waiting when it
