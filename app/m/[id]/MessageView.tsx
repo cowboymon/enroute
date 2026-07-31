@@ -155,43 +155,42 @@ export default function MessageView({ id }: { id: string }) {
 
   if (data.status === "IN_TRANSIT" && !hasArrived) {
     const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
+    const pct = progress?.pct ?? 0;
     return (
-      <div className="card">
-        <h1 className="section-title">Enroute</h1>
-        <p className="muted">
-          Traveling by{" "}
-          <span className="stamp">{method?.label ?? data.chosenMethod}</span>
-        </p>
-        <div className="pixel-stopwatch-wrap">
-          <div className="pixel-stopwatch">
-            <div className="pixel-stopwatch-knob" />
-            <div className="pixel-stopwatch-body">
-              <div className="pixel-lcd">
-                {progress ? formatRemaining(progress.remainingMs) : "--:--"}
-              </div>
-              <div className="pixel-dots">
-                <span className="pixel-dot pixel-dot-green" />
-                <span className="pixel-dot pixel-dot-red" />
-              </div>
+      <>
+        <div
+          className="delivery-scene"
+          style={
+            method
+              ? ({ ["--scene-bg" as string]: `var(--scene-${method.id})` } as React.CSSProperties)
+              : undefined
+          }
+        />
+        <div className="delivery-scene-content">
+          <span className="scene-method-label">
+            Traveling by {method?.label ?? data.chosenMethod}
+          </span>
+          <div className="scene-countdown">
+            {progress ? formatRemaining(progress.remainingMs) : "..."}
+          </div>
+          <div className="scene-bar-wrap">
+            <span
+              className="scene-bar-marker"
+              style={{ left: `${pct}%` }}
+              aria-hidden
+            >
+              {method?.icon ?? "📦"}
+            </span>
+            <div className="scene-bar-track">
+              <div className="scene-bar-fill" style={{ width: `${pct}%` }} />
             </div>
           </div>
+          <p className="scene-hint">
+            Come back anytime &mdash; your message will be waiting when it
+            arrives.
+          </p>
         </div>
-        <div className="pixel-progress" aria-hidden>
-          {Array.from({ length: 16 }).map((_, i) => {
-            const filled = (progress?.pct ?? 0) >= ((i + 1) / 16) * 100;
-            return (
-              <span
-                key={i}
-                className={`pixel-progress-seg${filled ? " is-filled" : ""}`}
-              />
-            );
-          })}
-        </div>
-        <p className="muted" style={{ marginTop: 12 }}>
-          Come back anytime &mdash; your message will be waiting when it
-          arrives.
-        </p>
-      </div>
+      </>
     );
   }
 

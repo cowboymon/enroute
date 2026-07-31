@@ -4,6 +4,8 @@ export type DeliveryMethod = {
   description: string;
   minSeconds: number;
   maxSeconds: number;
+  /** placeholder emoji marker used on the progress bar / scene until real art lands */
+  icon: string;
 };
 
 export const DELIVERY_METHODS: DeliveryMethod[] = [
@@ -13,6 +15,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "~30 seconds",
     minSeconds: 30,
     maxSeconds: 30,
+    icon: "🔥",
   },
   {
     id: "helicopter",
@@ -20,6 +23,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "~2 minutes",
     minSeconds: 120,
     maxSeconds: 120,
+    icon: "🚁",
   },
   {
     id: "carrier_pigeon",
@@ -27,6 +31,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "~15 minutes",
     minSeconds: 900,
     maxSeconds: 900,
+    icon: "🐦",
   },
   {
     id: "donkey",
@@ -34,6 +39,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "30-60 minutes",
     minSeconds: 1800,
     maxSeconds: 3600,
+    icon: "🫏",
   },
   {
     id: "snail",
@@ -41,6 +47,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "2-4 hours",
     minSeconds: 7200,
     maxSeconds: 14400,
+    icon: "🐌",
   },
   {
     id: "kitty_cat",
@@ -48,6 +55,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     description: "10 minutes - 6 hours (mysterious feline schedule)",
     minSeconds: 600,
     maxSeconds: 21600,
+    icon: "🐱",
   },
 ];
 
