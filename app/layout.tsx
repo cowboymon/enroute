@@ -5,6 +5,7 @@ import {
   liquidEmbrace,
   advercaseBold,
   advercaseRegular,
+  comico,
 } from "./fonts";
 import "./globals.css";
 
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${trovical.variable} ${liquidEmbrace.variable} ${advercaseBold.variable} ${advercaseRegular.variable}`}
+      className={`${trovical.variable} ${liquidEmbrace.variable} ${advercaseBold.variable} ${advercaseRegular.variable} ${comico.variable}`}
     >
       <body>
         <header className="header">

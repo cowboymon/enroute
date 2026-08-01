@@ -156,16 +156,17 @@ export default function MessageView({ id }: { id: string }) {
   if (data.status === "IN_TRANSIT" && !hasArrived) {
     const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
     const pct = progress?.pct ?? 0;
+    const sceneStyle = method
+      ? ({ ["--scene-bg" as string]: `var(--scene-${method.id})` } as React.CSSProperties)
+      : undefined;
+    const scrimStyle =
+      method?.scrimOpacity !== undefined
+        ? ({ ["--scene-scrim-opacity" as string]: method.scrimOpacity } as React.CSSProperties)
+        : undefined;
     return (
       <>
-        <div
-          className="delivery-scene"
-          style={
-            method
-              ? ({ ["--scene-bg" as string]: `var(--scene-${method.id})` } as React.CSSProperties)
-              : undefined
-          }
-        />
+        <div className="delivery-scene" style={sceneStyle} />
+        <div className="delivery-scene-scrim" style={scrimStyle} />
         <div className="delivery-scene-content">
           <span className="scene-method-label">
             Traveling by {method?.label ?? data.chosenMethod}
@@ -173,22 +174,25 @@ export default function MessageView({ id }: { id: string }) {
           <div className="scene-countdown">
             {progress ? formatRemaining(progress.remainingMs) : "..."}
           </div>
+          <p className="scene-hint">
+            Come back anytime &mdash; your message will be waiting when it
+            arrives.
+          </p>
+        </div>
+        <div className="scene-bar-fixed">
           <div className="scene-bar-wrap">
-            <span
-              className="scene-bar-marker"
-              style={{ left: `${pct}%` }}
-              aria-hidden
-            >
-              {method?.icon ?? "📦"}
+            <span className="scene-bar-marker" style={{ left: `${pct}%` }} aria-hidden>
+              {method?.spriteSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={method.spriteSrc} alt="" />
+              ) : (
+                <span className="is-emoji">{method?.icon ?? "📦"}</span>
+              )}
             </span>
             <div className="scene-bar-track">
               <div className="scene-bar-fill" style={{ width: `${pct}%` }} />
             </div>
           </div>
-          <p className="scene-hint">
-            Come back anytime &mdash; your message will be waiting when it
-            arrives.
-          </p>
         </div>
       </>
     );

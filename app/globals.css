@@ -13,15 +13,22 @@
   --font-liquid-embrace: "liquid-embrace-fallback", cursive;
   --font-advercase-bold: "advercase-bold-fallback", sans-serif;
   --font-advercase-regular: "advercase-regular-fallback", sans-serif;
+  --font-comico: "comico-fallback", sans-serif;
 
-  /* placeholder full-bleed delivery-scene backgrounds, one per method —
-     swap these for real pixel-art scene art later */
+  /* full-bleed delivery-scene backgrounds, one per method — methods
+     without supplied art yet fall back to a placeholder gradient */
   --scene-smoke_signal: linear-gradient(180deg, #d98a3e 0%, #a85c2e 55%, #5c3a24 100%);
-  --scene-helicopter: linear-gradient(180deg, #7cb8dd 0%, #4c86ad 55%, #2c4f66 100%);
-  --scene-carrier_pigeon: linear-gradient(180deg, #a7c9e8 0%, #7896b8 55%, #495f74 100%);
-  --scene-donkey: linear-gradient(180deg, #e3c98a 0%, #b99a5f 55%, #7a6238 100%);
-  --scene-snail: linear-gradient(180deg, #a9d18e 0%, #5f8f52 55%, #33512c 100%);
+  --scene-helicopter: url("/pigen-heli-bg.png");
+  --scene-carrier_pigeon: url("/pigen-heli-bg.png");
+  --scene-donkey: url("/donkey-bg.png");
+  --scene-snail: url("/snail-bg.png");
   --scene-kitty_cat: linear-gradient(180deg, #e8b4d0 0%, #b578a0 55%, #6b3f5c 100%);
+
+  /* contrast scrim sits between the scene bg and foreground UI — tune
+     per background so text/bar stay legible regardless of how busy the
+     art is. Default assumes a mid-toned photographic scene. */
+  --scene-scrim-color: 0, 0, 0;
+  --scene-scrim-opacity: 0.28;
 }
 
 * {
@@ -52,6 +59,8 @@ button {
 }
 
 .header {
+  position: relative;
+  z-index: 2;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -347,20 +356,31 @@ button {
 .delivery-scene {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   background-image: var(--scene-bg, var(--scene-snail));
   background-size: cover;
   background-position: center;
 }
 
+.delivery-scene-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-color: rgba(
+    var(--scene-scrim-color, 0, 0, 0),
+    var(--scene-scrim-opacity, 0.28)
+  );
+}
+
 .delivery-scene-content {
+  position: relative;
+  z-index: 1;
   min-height: calc(100dvh - 68px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
   gap: 20px;
-  padding: 40px 20px 56px;
+  padding: 56px 20px calc(env(safe-area-inset-bottom, 0px) + 96px);
   margin: -24px -20px -64px;
 }
 
@@ -374,43 +394,81 @@ button {
 }
 
 .scene-countdown {
-  font-family: var(--font-trovical);
+  font-family: var(--font-comico);
+  text-transform: uppercase;
   font-size: 64px;
   line-height: 1;
   color: #fff;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.4);
 }
 
+/* progress bar: fixed to the bottom of the viewport, full-width, using
+   the supplied bar-track / bar-fill art. */
+.scene-bar-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  z-index: 1;
+}
+
 .scene-bar-wrap {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   position: relative;
 }
 
 .scene-bar-track {
   width: 100%;
-  height: 34px;
-  background: #1c1c26;
-  border: 3px solid #0c0c12;
-  border-radius: 17px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  aspect-ratio: 1106 / 75;
+  background-image: url("/progress-bar.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  position: relative;
 }
 
 .scene-bar-fill {
-  height: 100%;
-  background: var(--color-accent-2);
-  border-radius: 17px 0 0 17px;
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 3.5%;
+  overflow: hidden;
   transition: width 0.5s linear;
+}
+
+.scene-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 560px;
+  max-width: none;
+  background-image: url("/progress-inside-bar-100.png");
+  background-size: auto 100%;
+  background-repeat: no-repeat;
 }
 
 .scene-bar-marker {
   position: absolute;
-  top: -22px;
-  transform: translateX(-50%);
-  font-size: 22px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: 220%;
   transition: left 0.5s linear;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+
+.scene-bar-marker img {
+  height: 100%;
+  width: auto;
+  display: block;
+  image-rendering: auto;
+}
+
+.scene-bar-marker.is-emoji {
+  font-size: 22px;
+  line-height: 1;
 }
 
 .scene-hint {

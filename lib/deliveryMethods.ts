@@ -6,6 +6,10 @@ export type DeliveryMethod = {
   maxSeconds: number;
   /** placeholder emoji marker used on the progress bar / scene until real art lands */
   icon: string;
+  /** real sprite art for the progress-bar leading-edge marker, if supplied */
+  spriteSrc?: string;
+  /** per-scene scrim tuning; omit to use the global default */
+  scrimOpacity?: number;
 };
 
 export const DELIVERY_METHODS: DeliveryMethod[] = [
@@ -24,6 +28,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     minSeconds: 120,
     maxSeconds: 120,
     icon: "🚁",
+    spriteSrc: "/pigeon.png",
   },
   {
     id: "carrier_pigeon",
@@ -32,6 +37,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     minSeconds: 900,
     maxSeconds: 900,
     icon: "🐦",
+    spriteSrc: "/pigeon.png",
   },
   {
     id: "donkey",
@@ -48,6 +54,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     minSeconds: 7200,
     maxSeconds: 14400,
     icon: "🐌",
+    spriteSrc: "/snail.png",
   },
   {
     id: "kitty_cat",

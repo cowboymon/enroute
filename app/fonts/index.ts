@@ -29,6 +29,12 @@ export const advercaseBold = localFont({
   display: "swap",
 });
 
+export const comico = localFont({
+  src: "../../public/fonts/Comico-Regular.otf",
+  variable: "--font-comico",
+  display: "swap",
+});
+
 export const advercaseRegular = localFont({
   src: [
     {
