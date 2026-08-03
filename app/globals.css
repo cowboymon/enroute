@@ -45,6 +45,18 @@ body {
   overflow-x: hidden;
 }
 
+@media (min-width: 721px) {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}
+
 button,
 input,
 textarea {
@@ -79,6 +91,7 @@ a {
 /* ---------- topbar ---------- */
 .topbar {
   height: 72px;
+  flex-shrink: 0;
   border-bottom: 2px solid var(--ink);
   display: flex;
   align-items: center;
@@ -153,6 +166,23 @@ a {
   min-height: calc(100vh - 112px);
   display: grid;
   grid-template-columns: minmax(300px, 34vw) 1fr;
+}
+
+@media (min-width: 721px) {
+  .shell {
+    flex: 1;
+    min-height: 0;
+  }
+  .story-rail {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .workspace {
+    min-height: 0;
+  }
+  .workspace__body {
+    overflow-y: auto;
+  }
 }
 
 .story-rail {
@@ -1135,6 +1165,7 @@ a {
 /* ---------- ticker ---------- */
 .ticker {
   height: 40px;
+  flex-shrink: 0;
   display: flex;
   overflow: hidden;
   border-top: 2px solid var(--ink);
