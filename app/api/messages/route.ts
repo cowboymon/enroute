@@ -73,5 +73,10 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Fire the SENT event right away — carrier isn't known yet, so it's null.
+  await prisma.messageEvent.create({
+    data: { messageId: message.id, type: "SENT", carrier: null },
+  });
+
   return NextResponse.json({ id: message.id }, { status: 201 });
 }

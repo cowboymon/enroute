@@ -27,6 +27,11 @@ model Message {
   body                 String
   status               String    @default("PENDING_CHOICE") // PENDING_CHOICE | IN_TRANSIT | ARRIVED
   chosenMethod         String?
+  // The moment the recipient chose a carrier (i.e. when the countdown to
+  // arrivalAt actually started). Used to compute an accurate transit
+  // duration for stats — see lib/stats.ts — rather than approximating from
+  // createdAt (which includes any time the message sat unchosen).
+  chosenAt             DateTime?
   arrivalAt            DateTime?
   createdAt            DateTime  @default(now())
   readAt               DateTime?
@@ -39,4 +44,28 @@ model Message {
   notifyContactType    String?
   notifyContact        String?
   notifiedAt           DateTime?
+
+  events               MessageEvent[]
+}
+
+// Lightweight analytics log for the /api/stats endpoint. Two event types are
+// recorded, each exactly once per message:
+//   - SENT: fired at compose time (POST /api/messages), before a carrier is
+//     chosen, so `carrier` is null.
+//   - DELIVERED: fired the first time anyone observes a message whose
+//     effective status has transitioned to ARRIVED (GET
+//     /api/messages/[id]), with the chosen carrier and the actual transit
+//     duration (arrivalAt - chosenAt) in seconds.
+model MessageEvent {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+  type      String // SENT | DELIVERED
+  carrier   String?
+  // Actual transit duration in seconds, only set for DELIVERED events.
+  transitSeconds Int?
+  createdAt DateTime @default(now())
+
+  // At most one SENT and one DELIVERED event per message.
+  @@unique([messageId, type])
 }

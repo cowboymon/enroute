@@ -17,6 +17,31 @@ export async function GET(
 
   const status = effectiveStatus(message);
 
+  // Fire the DELIVERED event exactly once, the first time anyone observes a
+  // message whose effective status has transitioned to ARRIVED. Guarded by
+  // the MessageEvent(messageId, type) unique constraint — a duplicate-key
+  // error just means another request already recorded it.
+  if (status === "ARRIVED" && message.chosenMethod && message.arrivalAt) {
+    const transitSeconds = Math.max(
+      0,
+      Math.round(
+        (message.arrivalAt.getTime() - (message.chosenAt ?? message.createdAt).getTime()) / 1000
+      )
+    );
+    try {
+      await prisma.messageEvent.create({
+        data: {
+          messageId: message.id,
+          type: "DELIVERED",
+          carrier: message.chosenMethod,
+          transitSeconds,
+        },
+      });
+    } catch {
+      // Unique constraint violation — already recorded, ignore.
+    }
+  }
+
   // Fire the arrival notification exactly once, the first time anyone
   // observes an ARRIVED message that hasn't been notified yet.
   if (

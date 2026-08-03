@@ -40,6 +40,7 @@ export async function POST(
     where: { id: params.id },
     data: {
       chosenMethod: method.id,
+      chosenAt: new Date(),
       arrivalAt,
       status: "IN_TRANSIT",
     },
