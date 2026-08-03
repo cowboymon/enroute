@@ -57,6 +57,14 @@ export const JOURNEY_PATHS: Record<string, Waypoint[]> = {
     [77, 40, 0.84, -3],
     [90, 21, 0.72, 1],
   ],
+  cat: [
+    [7, 70, 0.86, -2],
+    [23, 75, 0.96, 2],
+    [38, 62, 0.9, -3],
+    [56, 71, 1.06, 1],
+    [73, 60, 0.88, -1],
+    [88, 68, 0.98, 1],
+  ],
 };
 
 export const CARRIER_SIZES: Record<string, number> = {
@@ -66,6 +74,7 @@ export const CARRIER_SIZES: Record<string, number> = {
   pigeon: 190,
   donkey: 230,
   smoke: 175,
+  cat: 200,
 };
 
 export function journeyPosition(key: string, pct: number): Waypoint {

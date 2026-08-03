@@ -32,8 +32,9 @@ Then open http://localhost:3000.
 | `pigeon` | Pigeon | 30–90 minutes (rolled once, server-side) |
 | `donkey` | Donkey | 4–8 hours (rolled once, server-side) |
 | `smoke` | Smoke signal | 5–20 minutes (rolled once, server-side) |
+| `cat` | Kitty Cat | 10 min–6 hrs (rolled once, server-side) |
 
-All six methods roll a random duration (see `rollDurationSeconds` in `lib/deliveryMethods.ts`)
+All seven methods roll a random duration (see `rollDurationSeconds` in `lib/deliveryMethods.ts`)
 exactly once, at the moment the recipient chooses them — the resulting `arrivalAt` is
 persisted and never re-rolled on subsequent visits. The wombat is the one special case: it
 rolls from three weighted duration buckets (mostly a short hop, sometimes a multi-hour
@@ -68,13 +69,13 @@ four share a common shell (`app/components/ChapterShell.tsx`) — a topbar, a le
 risograph-y, hand-stamped paper-and-ink look (thick borders, hard drop shadows, oklch
 paper/ink/postbox/moss/plum tokens).
 
-The six delivery methods are now real illustrated carriers (wombat, blimp, snail, pigeon,
-donkey, smoke signal) instead of placeholder emoji/colored blocks:
+The seven delivery methods are now real illustrated carriers (wombat, blimp, snail, pigeon,
+donkey, smoke signal, kitty cat) instead of placeholder emoji/colored blocks:
 
-- Each carrier's card and its travelling marker draw from a real sprite
-  (`public/characters/*.png`) onto a `<canvas>` via `app/components/CarrierSprite.tsx`,
-  which also supports an optional magenta color-key transparency pass (unused by the
-  current art, but kept for sprite sheets that need it).
+- Each carrier's card and its travelling marker draw from a real 3-frame sprite sheet
+  (`public/characters/*.png`, magenta color-keyed) onto a `<canvas>` via
+  `app/components/CarrierSprite.tsx`. The travelling marker briefly swaps to the third
+  frame whenever a field-note "oddity" fires, for a beat of extra motion.
 - The transit chapter's traveller is animated along a hand-authored path
   (`lib/journeyPaths.ts`) — purely a visual shape, interpolated by the real elapsed-time
   percentage computed from the server's `arrivalAt`, never by a client-side timer of its
@@ -83,7 +84,8 @@ donkey, smoke signal) instead of placeholder emoji/colored blocks:
   the real countdown is (see the `events`/`progress`/`oddities` fields on each
   `DeliveryMethod` in `lib/deliveryMethods.ts`).
 - The reveal chapter's delivery stamp is drawn from a sprite atlas
-  (`public/stamps/delivered-badges.png`), one badge per carrier.
+  (`public/stamps/delivered-badges.png`); most carriers have their own badge, though the
+  kitty cat currently reuses the generic badge (no dedicated stamp art yet).
 
 All colors are defined as CSS custom properties in `app/globals.css` (`--ink`, `--paper`,
 `--postbox`, `--moss`, `--plum`, etc.) so the palette can be swapped in one place; a dark-mode

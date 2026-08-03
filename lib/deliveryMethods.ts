@@ -169,6 +169,27 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     deliveredBadgeClass: "delivered-message",
     durationRoll: { kind: "uniform", minSeconds: 5 * 60, maxSeconds: 20 * 60 },
   },
+  {
+    id: "cat",
+    label: "Kitty Cat",
+    speed: "10 min–6 hrs",
+    copy: "Nominally a courier. Mostly here for the box and the naps.",
+    headline: "The cat has accepted the job. Mostly.",
+    progress: ["Bag packed, reluctantly", "Somewhere, probably a sunbeam", "Nearing the good chair"],
+    oddities: [
+      "Has stopped to consider the box.",
+      "Is now in the box. Delivery paused.",
+      "Emerged from the box for a snack, delivery resumed.",
+      "Has decided the rug is the destination.",
+    ],
+    events: [0.05, 0.22, 0.6, 0.9],
+    scene: "/bg/livingroom-bg.png",
+    sprite: "/characters/cat.png",
+    air: false,
+    color: "oklch(80% .01 250)",
+    deliveredBadgeClass: "delivered-generic",
+    durationRoll: { kind: "uniform", minSeconds: 10 * 60, maxSeconds: 360 * 60 },
+  },
 ];
 
 export function getDeliveryMethod(id: string): DeliveryMethod | undefined {
