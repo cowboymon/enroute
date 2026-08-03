@@ -1,6 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { STICKER_CATALOG, type Sticker } from "@/lib/stickerCatalog";
+import { pickNoRepeat } from "@/lib/noRepeatPicker";
+import StatsTeaser from "@/app/components/StatsTeaser";
+
+const RECENT_STICKERS_KEY = "enroute-recent-stickers";
+const MAX_RECENT_STICKERS = 6;
+
+/** Re-rolls the two story-rail stickers, avoiding recently-shown ones (across atlases). */
+function rollStickers(): { stickers: [Sticker, Sticker]; updatedRecentIds: string[] } {
+  const keys = STICKER_CATALOG.map((s) => s.key);
+  let recent: string[] = [];
+  try {
+    recent = JSON.parse(localStorage.getItem(RECENT_STICKERS_KEY) ?? "[]");
+  } catch {
+    recent = [];
+  }
+
+  const first = pickNoRepeat(keys, recent, MAX_RECENT_STICKERS);
+  const second = pickNoRepeat(
+    keys.filter((k) => k !== first.value),
+    first.updatedRecentIds,
+    MAX_RECENT_STICKERS
+  );
+
+  const firstSticker = STICKER_CATALOG.find((s) => s.key === first.value)!;
+  const secondSticker = STICKER_CATALOG.find((s) => s.key === second.value)!;
+
+  return { stickers: [firstSticker, secondSticker], updatedRecentIds: second.updatedRecentIds };
+}
 
 const STAGE_LABELS = [
   "Chapter 01 · The note",
@@ -38,6 +68,23 @@ export default function ChapterShell({
 }) {
   const clampedIndex = Math.max(0, Math.min(3, stageIndex));
 
+  // Re-roll which two stickers appear in the postal-cluster on each page
+  // load (compose, choose/transit/reveal all mount this shell fresh),
+  // avoiding recent repeats via localStorage.
+  const [stickers, setStickers] = useState<[Sticker, Sticker]>([
+    STICKER_CATALOG.find((s) => s.key === "journey")!,
+    STICKER_CATALOG.find((s) => s.key === "slow")!,
+  ]);
+  useEffect(() => {
+    const { stickers: rolled, updatedRecentIds } = rollStickers();
+    setStickers(rolled);
+    try {
+      localStorage.setItem(RECENT_STICKERS_KEY, JSON.stringify(updatedRecentIds));
+    } catch {
+      // localStorage unavailable — stickers just won't persist rotation history.
+    }
+  }, []);
+
   return (
     <>
       <header className="topbar">
@@ -64,8 +111,8 @@ export default function ChapterShell({
             part of the message.
           </p>
           <div className="postal-cluster" aria-hidden="true">
-            <i className="postal-stamp atlas-two badge-journey" />
-            <i className="postal-stamp atlas-two badge-slow" />
+            <i className={`postal-stamp ${stickers[0].atlas} ${stickers[0].badgeClass} sticker-slot-1`} />
+            <i className={`postal-stamp ${stickers[1].atlas} ${stickers[1].badgeClass} sticker-slot-2`} />
           </div>
 
           <ol className="journey" aria-label="Message journey">
@@ -88,6 +135,7 @@ export default function ChapterShell({
           <div className="rail-note">
             <span>Current dispatch</span>
             <strong>{railDispatch}</strong>
+            <StatsTeaser />
           </div>
         </aside>
 

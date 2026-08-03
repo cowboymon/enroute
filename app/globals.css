@@ -300,6 +300,14 @@ a {
   font-size: 13px;
 }
 
+.stats-teaser {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  max-width: 34ch;
+}
+
 /* ---------- workspace / chapter chrome ---------- */
 .workspace {
   min-width: 0;
@@ -1013,7 +1021,7 @@ a {
   position: relative;
 }
 
-.postal-cluster .badge-journey {
+.postal-cluster .sticker-slot-1 {
   position: absolute;
   left: 0;
   top: 0;
@@ -1021,7 +1029,7 @@ a {
   transform-origin: top left;
 }
 
-.postal-cluster .badge-slow {
+.postal-cluster .sticker-slot-2 {
   position: absolute;
   left: 118px;
   top: 8px;
@@ -1059,6 +1067,75 @@ a {
 .atlas-three {
   background-image: url("/stamps/delivered-badges.png");
   background-size: 793px 496px;
+}
+
+/* field-notes.png sheet — used for the story-rail's rotating sticker pair
+   (see StatsTeaser / ChapterShell's postal-cluster). */
+.atlas-one {
+  background-image: url("/stamps/field-notes.png");
+  background-size: 793px 496px;
+}
+
+.badge-review {
+  width: 125px;
+  height: 130px;
+  background-position: -22px -30px;
+}
+
+.badge-smalltalk {
+  width: 110px;
+  height: 115px;
+  background-position: -172px -35px;
+}
+
+.badge-longway {
+  width: 113px;
+  height: 130px;
+  background-position: -677px -30px;
+}
+
+.badge-costly {
+  width: 110px;
+  height: 108px;
+  background-position: -25px -187px;
+}
+
+.badge-donotrush {
+  width: 110px;
+  height: 135px;
+  background-position: -25px -315px;
+}
+
+.badge-worththewait {
+  width: 100px;
+  height: 135px;
+  background-position: -150px -315px;
+}
+
+/* Additional postal-badges.png (atlas-two) stickers, beyond badge-journey /
+   badge-slow, for the story-rail rotation catalog. */
+.badge-scenic {
+  width: 118px;
+  height: 108px;
+  background-position: -177px -32px;
+}
+
+.badge-detour {
+  width: 110px;
+  height: 75px;
+  background-position: -395px -187px;
+}
+
+.badge-feelings {
+  width: 150px;
+  height: 68px;
+  background-position: -225px -192px;
+}
+
+.badge-reststop {
+  width: 103px;
+  height: 100px;
+  background-position: -542px -295px;
 }
 
 .delivered-generic {
