@@ -8,9 +8,8 @@ import { useEffect, useRef } from "react";
  * sheet drawn at a fixed 724x724 canvas size with nearest-neighbour
  * scaling, with an optional magenta color-key pass that turns
  * near-magenta pixels transparent for sprite sheets that use it instead of
- * real alpha. None of the shipped carrier art requires color-keying (all
- * are already RGBA with real transparency), so `colorKey` defaults to off,
- * but the plumbing is kept for future sprite sheets that do use it.
+ * real alpha. The carrier art in /public/characters uses magenta color-key
+ * backgrounds, so callers pass `colorKey`.
  */
 export default function CarrierSprite({
   src,

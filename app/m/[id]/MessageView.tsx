@@ -176,7 +176,7 @@ export default function MessageView({ id }: { id: string }) {
                   onClick={() => setSelected(m.id)}
                 >
                   <div className="carrier-visual">
-                    <CarrierSprite src={m.sprite} label={`${m.label} sprite`} />
+                    <CarrierSprite src={m.sprite} colorKey label={`${m.label} sprite`} />
                   </div>
                   <div className="carrier-meta">
                     <strong>{m.label}</strong>
@@ -275,7 +275,12 @@ export default function MessageView({ id }: { id: string }) {
                 } as React.CSSProperties
               }
             >
-              <CarrierSprite src={method.sprite} frame={1} label={`${method.label} carrying the message`} />
+              <CarrierSprite
+                src={method.sprite}
+                frame={isObserving ? 2 : 1}
+                colorKey
+                label={`${method.label} carrying the message`}
+              />
             </div>
             <div className="scene-caption">
               <span>
