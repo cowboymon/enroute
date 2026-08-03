@@ -8,7 +8,6 @@ import ChapterShell from "@/app/components/ChapterShell";
 import CarrierSprite from "@/app/components/CarrierSprite";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^\+?[\d\s().-]{7,20}$/;
 
 type MessageData = {
   id: string;
@@ -44,7 +43,7 @@ export default function MessageView({ id }: { id: string }) {
   const gridRef = useRef<HTMLDivElement>(null);
 
   // Notify-on-arrival consent, offered on the transit screen.
-  const [notifyType, setNotifyType] = useState<"email" | "mobile">("email");
+  const notifyType: "email" = "email";
   const [notifyContact, setNotifyContact] = useState("");
   const [notifySaving, setNotifySaving] = useState(false);
   const [notifySaved, setNotifySaved] = useState(false);
@@ -131,15 +130,11 @@ export default function MessageView({ id }: { id: string }) {
     setNotifyError(null);
     const trimmed = notifyContact.trim();
     if (!trimmed) {
-      setNotifyError("Enter a contact first.");
+      setNotifyError("Enter an email first.");
       return;
     }
-    if (notifyType === "email" && !EMAIL_RE.test(trimmed)) {
+    if (!EMAIL_RE.test(trimmed)) {
       setNotifyError("That doesn't look like a valid email.");
-      return;
-    }
-    if (notifyType === "mobile" && !PHONE_RE.test(trimmed)) {
-      setNotifyError("That doesn't look like a valid mobile number.");
       return;
     }
     setNotifySaving(true);
@@ -390,32 +385,12 @@ export default function MessageView({ id }: { id: string }) {
                 ) : (
                   <>
                     <span className="contact-field__label">Want a nudge when it arrives?</span>
-                    <div className="contact-toggle" role="tablist" aria-label="Notify contact type">
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={notifyType === "email"}
-                        className={`contact-toggle__option${notifyType === "email" ? " is-active" : ""}`}
-                        onClick={() => setNotifyType("email")}
-                      >
-                        Email
-                      </button>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={notifyType === "mobile"}
-                        className={`contact-toggle__option${notifyType === "mobile" ? " is-active" : ""}`}
-                        onClick={() => setNotifyType("mobile")}
-                      >
-                        Mobile
-                      </button>
-                    </div>
                     <div className="notify-consent__row">
                       <input
                         value={notifyContact}
                         onChange={(e) => setNotifyContact(e.target.value)}
-                        placeholder={notifyType === "email" ? "you@example.com" : "+1 555 123 4567"}
-                        inputMode={notifyType === "email" ? "email" : "tel"}
+                        placeholder="you@example.com"
+                        inputMode="email"
                       />
                       <button
                         className="button"

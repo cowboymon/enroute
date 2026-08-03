@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^\+?[\d\s().-]{7,20}$/;
 
 export async function POST(
   req: NextRequest,
@@ -18,17 +17,14 @@ export async function POST(
   const type = payload.notifyContactType;
   const contact = payload.notifyContact?.trim();
 
-  if (type !== "email" && type !== "mobile") {
-    return NextResponse.json({ error: "notifyContactType must be email or mobile." }, { status: 400 });
+  if (type !== "email") {
+    return NextResponse.json({ error: "notifyContactType must be email." }, { status: 400 });
   }
   if (!contact) {
     return NextResponse.json({ error: "notifyContact is required." }, { status: 400 });
   }
-  if (type === "email" && !EMAIL_RE.test(contact)) {
+  if (!EMAIL_RE.test(contact)) {
     return NextResponse.json({ error: "That doesn't look like a valid email." }, { status: 400 });
-  }
-  if (type === "mobile" && !PHONE_RE.test(contact)) {
-    return NextResponse.json({ error: "That doesn't look like a valid mobile number." }, { status: 400 });
   }
 
   const message = await prisma.message.findUnique({ where: { id: params.id } });

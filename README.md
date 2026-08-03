@@ -59,11 +59,12 @@ A single `Message` model (see `prisma/schema.prisma`) tracks:
 - `status`: `PENDING_CHOICE` → `IN_TRANSIT` → `ARRIVED`
 - `chosenMethod` / `arrivalAt`: set once the recipient picks a method
 - `readAt`: set the first time the arrived message is actually viewed
-- `senderContactType` / `senderContact`: the sender's own contact (email or mobile),
-  captured at compose time so they can be handed a link back to watch their own
-  message's journey (`/m/[id]?as=sender`)
-- `recipientContactType` / `recipientContact`: who the message is FOR, captured by the
-  sender via an Email/Mobile toggle at compose time. This replaces the old, unused
+- `senderContactType` / `senderContact`: the sender's own email, captured at compose
+  time so they can be handed a link back to watch their own message's journey
+  (`/m/[id]?as=sender`). `senderContactType` is currently always `"email"` — the field
+  is kept generic in the schema in case another contact type is added later.
+- `recipientContactType` / `recipientContact`: who the message is FOR, captured as an
+  email address by the sender at compose time. This replaces the old, unused
   `recipientEmail` field.
 - `notifyOnArrival` / `notifyContactType` / `notifyContact` / `notifiedAt`: the
   **recipient's** consent, asked on the transit screen (after they've already picked a
@@ -87,16 +88,14 @@ with the rest of this app having no auth.
 
 ### Arrival notifications (email via Resend)
 
-If a recipient opts in on the transit screen with an **email** contact, the app calls
+Contact fields (sender, recipient, and the transit-screen notify-on-arrival consent)
+are **email only** for now — there's no SMS provider wired up, so the UI doesn't offer
+a mobile option. If a recipient opts in on the transit screen, the app calls
 `sendArrivalNotification` (see `lib/email.ts`, using the [Resend](https://resend.com)
 npm package) the first time the message is observed as `ARRIVED` and `notifiedAt` is
 still unset — this check lives in the `GET /api/messages/[id]` handler, alongside the
 existing `effectiveStatus` computation. `notifiedAt` is then stamped so it only fires
 once.
-
-If the recipient opts in with a **mobile** number instead, it is stored
-(`notifyContactType`/`notifyContact`) but nothing is sent — there's no SMS provider
-wired up yet (see the comment in `app/api/messages/[id]/route.ts`).
 
 `RESEND_API_KEY` is an **optional** env var. If it isn't set, `sendArrivalNotification`
 is a no-op (it logs and returns) rather than throwing, so the app still runs and builds

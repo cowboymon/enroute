@@ -63,6 +63,10 @@ export default function ChapterShell({
             Write something now. Let them choose how it finds its way. The waiting is
             part of the message.
           </p>
+          <div className="postal-cluster" aria-hidden="true">
+            <i className="postal-stamp atlas-two badge-journey" />
+            <i className="postal-stamp atlas-two badge-slow" />
+          </div>
 
           <ol className="journey" aria-label="Message journey">
             {JOURNEY.map((item, i) => (
