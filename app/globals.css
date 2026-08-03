@@ -1017,6 +1017,8 @@ a {
 
 .postal-cluster {
   height: 78px;
+  min-height: 78px;
+  flex-shrink: 0;
   margin: 20px 0 -22px;
   position: relative;
 }
