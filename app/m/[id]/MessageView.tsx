@@ -4,8 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DELIVERY_METHODS, getDeliveryMethod } from "@/lib/deliveryMethods";
 import { CARRIER_SIZES, journeyPosition } from "@/lib/journeyPaths";
+import { pickNoRepeat } from "@/lib/noRepeatPicker";
 import ChapterShell from "@/app/components/ChapterShell";
 import CarrierSprite from "@/app/components/CarrierSprite";
+
+/** Field-note pool for a given elapsed-percentage, moment-based on the carrier's copy buckets. */
+function fieldNotePool(method: ReturnType<typeof getDeliveryMethod>, pct: number): string[] {
+  if (!method) return [];
+  if (pct < 0.05) return method.dispatchLines;
+  if (pct >= 0.9) return method.nearArrivalLines.length ? method.nearArrivalLines : method.midTransitLines;
+  return method.midTransitLines.length ? method.midTransitLines : method.dispatchLines;
+}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -41,6 +50,15 @@ export default function MessageView({ id }: { id: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Field-note rotation: picks a new line from the current moment's pool
+  // every few seconds, avoiding repeats of the last couple shown. Resets
+  // implicitly whenever the pool (dispatch/mid/near) changes.
+  const [fieldNote, setFieldNote] = useState<{ pool: string[]; text: string; recent: string[] }>({
+    pool: [],
+    text: "",
+    recent: [],
+  });
 
   // Notify-on-arrival consent, offered on the transit screen.
   const notifyType: "email" = "email";
@@ -169,6 +187,28 @@ export default function MessageView({ id }: { id: string }) {
     return { pct, remainingMs };
   }, [data, now]);
 
+  const method = data?.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
+  const pctForNotes = progress?.pct ?? 0;
+  const currentPool = fieldNotePool(method, pctForNotes);
+
+  // Rotate the field note every ~6s while in transit, re-picking whenever
+  // the pool itself changes (dispatch -> mid -> near-arrival) or on load.
+  useEffect(() => {
+    if (data?.status !== "IN_TRANSIT" || currentPool.length === 0) return;
+    const pick = () => {
+      setFieldNote((prev) => {
+        const samePool = prev.pool === currentPool || (prev.pool.length && prev.pool[0] === currentPool[0]);
+        const recent = samePool ? prev.recent : [];
+        const { value, updatedRecentIds } = pickNoRepeat(currentPool, recent, 2);
+        return { pool: currentPool, text: value, recent: updatedRecentIds };
+      });
+    };
+    pick();
+    const interval = setInterval(pick, 6500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.status, currentPool.length, currentPool[0]]);
+
   if (loading) {
     return (
       <ChapterShell stageIndex={0} status="Post office open" railDispatch="Loading...">
@@ -191,7 +231,6 @@ export default function MessageView({ id }: { id: string }) {
 
   if (!data) return null;
 
-  const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
   const railDispatch = method ? `${method.label} · ${data.recipientName}` : "Nothing in the wild yet";
 
   // ---------------- choose (sender view) ----------------
@@ -311,10 +350,6 @@ export default function MessageView({ id }: { id: string }) {
   // ---------------- transit ----------------
   if (data.status === "IN_TRANSIT" && !hasArrived && method) {
     const pct = progress?.pct ?? 0;
-    let oddityIndex = 0;
-    method.events.forEach((threshold, index) => {
-      if (pct >= threshold) oddityIndex = index;
-    });
     const progressNote = method.progress[pct < 0.18 ? 0 : pct < 0.78 ? 1 : 2];
     const [x, y, scale, rotate] = journeyPosition(method.id, pct);
     const isObserving = method.events.some((point) => Math.abs(pct - point) < 0.018);
@@ -360,11 +395,11 @@ export default function MessageView({ id }: { id: string }) {
               <div className="field-note">
                 <div className="field-note__meta">
                   <span>Unscheduled character event</span>
-                  <b>{String(oddityIndex + 1).padStart(2, "0")}</b>
+                  <b>{String(Math.floor(pct * 100)).padStart(2, "0")}</b>
                 </div>
                 <div className="field-note__body">
-                  <p key={oddityIndex} style={{ animation: "note-in .42s var(--ease)" }}>
-                    {method.oddities[oddityIndex]}
+                  <p key={fieldNote.text} style={{ animation: "note-in .42s var(--ease)" }}>
+                    {fieldNote.text}
                   </p>
                 </div>
               </div>
@@ -429,6 +464,7 @@ export default function MessageView({ id }: { id: string }) {
           </span>
           <blockquote>{data.body ? `"${data.body}"` : "Unsealing your message..."}</blockquote>
           <div className="signature">Carried by {method?.label ?? data.chosenMethod}</div>
+          {method?.deliveredLine && <p className="delivered-line">{method.deliveredLine}</p>}
         </div>
         <div className="reveal-actions">
           <a className="button button--primary" href="/">

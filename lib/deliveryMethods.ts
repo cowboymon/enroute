@@ -13,6 +13,14 @@ export type DeliveryMethod = {
   oddities: string[];
   /** elapsed-time thresholds (0-1) at which the next oddity in the list appears */
   events: number[];
+  /** shown right when transit starts (pct ~ 0) */
+  dispatchLines: string[];
+  /** shown through the middle stretch of the journey */
+  midTransitLines: string[];
+  /** shown as the carrier is nearly there */
+  nearArrivalLines: string[];
+  /** shown on the reveal chapter, alongside/instead of `copy` */
+  deliveredLine: string;
   /** background image for the transit scene, served from /public */
   scene: string;
   /** sprite art for the carrier card + travelling marker, served from /public */
@@ -50,6 +58,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Moved the satchel to the other shoulder. Fresh start.",
     ],
     events: [0.04, 0.19, 0.58, 0.9],
+    dispatchLines: ["Satchel checked twice. Wombat unbothered by the deadline."],
+    midTransitLines: [
+      "Has stopped to inspect a very convincing leaf.",
+      "Is taking the tunnel. There was no tunnel before.",
+      "Has rejected the official route on personal grounds.",
+      "Moved the satchel to the other shoulder. Fresh start.",
+    ],
+    nearArrivalLines: [
+      "Recognizes this street. Mildly smug about it.",
+      "Has stopped dawdling. Suspiciously close now.",
+    ],
+    deliveredLine: "Arrived exactly when it wanted to, which was now.",
     scene: "/bg/mountain-bg.png",
     sprite: "/characters/wombat.png",
     air: false,
@@ -78,6 +98,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Is pretending the headwind was part of the plan.",
     ],
     events: [0.06, 0.28, 0.7, 0.92],
+    dispatchLines: ["Ropes cast off. Tiny satchel immaculate as promised."],
+    midTransitLines: [
+      "Has caught a breeze with somewhere else to be.",
+      "Is circling a cloud that looks exactly like a scone.",
+      "Has lowered altitude to wave at a very small dog.",
+      "Is pretending the headwind was part of the plan.",
+    ],
+    nearArrivalLines: [
+      "Beginning its descent. Steering still questionable.",
+      "Has spotted the landing zone and is aiming approximately at it.",
+    ],
+    deliveredLine: "Touched down with unearned confidence and total success.",
     scene: "/bg/blimp-bg.png",
     sprite: "/characters/blimp.png",
     air: true,
@@ -99,6 +131,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Left a tiny note: still coming.",
     ],
     events: [0.03, 0.14, 0.52, 0.86],
+    dispatchLines: ["First tiny foot forward. The yearning begins."],
+    midTransitLines: [
+      "Has travelled almost an entire leaf.",
+      "Is taking a scheduled dew break.",
+      "Has encountered a pebble and called it a mountain.",
+      "Left a tiny note: still coming.",
+    ],
+    nearArrivalLines: [
+      "The garden gate is, theoretically, visible.",
+      "Picking up what can only be described as a slight pace.",
+    ],
+    deliveredLine: "Arrived. Theatrically. Exactly as yearned for.",
     scene: "/bg/snail-bg.png",
     sprite: "/characters/snail.png",
     air: false,
@@ -120,6 +164,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Can see the destination but prefers a dramatic approach.",
     ],
     events: [0.08, 0.31, 0.63, 0.91],
+    dispatchLines: ["Cleared for take-off. Chip-related delay pre-approved."],
+    midTransitLines: [
+      "Has stopped to judge a statue.",
+      "Is negotiating with a chip. Terms remain unclear.",
+      "Joined the wrong flock for six minutes.",
+      "Can see the destination but prefers a dramatic approach.",
+    ],
+    nearArrivalLines: [
+      "Coming in hot, in the loosest sense of hot.",
+      "Has decided this is close enough to a runway.",
+    ],
+    deliveredLine: "Landed with street-smart swagger and one (1) crumb still stuck to it.",
     scene: "/bg/sky-bg.png",
     sprite: "/characters/pigeon.png",
     air: true,
@@ -141,6 +197,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Would like it noted that uphill builds character.",
     ],
     events: [0.05, 0.24, 0.66, 0.89],
+    dispatchLines: ["Saddled up. Precious cargo secured, opinions unchanged."],
+    midTransitLines: [
+      "Has stopped to admire the view. This is now a scenic pause.",
+      "Has chosen a path that is technically not a path.",
+      "Is clip-clopping to a distant accordion.",
+      "Would like it noted that uphill builds character.",
+    ],
+    nearArrivalLines: [
+      "Clip-clopping closer, on its own terms.",
+      "Has begrudgingly accepted that arrival is imminent.",
+    ],
+    deliveredLine: "Delivered the feelings intact. Character, allegedly, built.",
     scene: "/bg/desert-bg.png",
     sprite: "/characters/donkey.png",
     air: false,
@@ -162,6 +230,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Is drifting in cursive now.",
     ],
     events: [0.1, 0.38, 0.73, 0.93],
+    dispatchLines: ["Fire lit. Message rising, mysteriously, immediately."],
+    midTransitLines: [
+      "Has become briefly shaped like a teapot.",
+      "Is waiting for the wind to finish changing its mind.",
+      "Has been mistaken for weather.",
+      "Is drifting in cursive now.",
+    ],
+    nearArrivalLines: [
+      "Visible on the horizon, dramatically.",
+      "Holding its shape just long enough to be read.",
+    ],
+    deliveredLine: "Dispersed on arrival, having made its point beautifully.",
     scene: "/bg/fire-bg.png",
     sprite: "/characters/smoke.png",
     air: true,
@@ -183,6 +263,18 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
       "Has decided the rug is the destination.",
     ],
     events: [0.05, 0.22, 0.6, 0.9],
+    dispatchLines: ["Bag packed, reluctantly. Job accepted, terms unclear."],
+    midTransitLines: [
+      "Has stopped to consider the box.",
+      "Is now in the box. Delivery paused.",
+      "Emerged from the box for a snack, delivery resumed.",
+      "Has decided the rug is the destination.",
+    ],
+    nearArrivalLines: [
+      "Nearing the good chair. Delivery is a formality now.",
+      "Has remembered the job. Briefly.",
+    ],
+    deliveredLine: "Delivered, then immediately went to go lie down somewhere better.",
     scene: "/bg/livingroom-bg.png",
     sprite: "/characters/cat.png",
     air: false,

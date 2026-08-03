@@ -1156,6 +1156,14 @@ a {
   letter-spacing: 0.1em;
 }
 
+.delivered-line {
+  text-align: right;
+  margin-top: 6px;
+  color: var(--muted);
+  font: 400 13px var(--font-body);
+  font-style: italic;
+}
+
 .reveal-actions {
   display: flex;
   align-items: center;
