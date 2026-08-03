@@ -1,5 +1,17 @@
 import localFont from "next/font/local";
 
+// The new visual design (see README "Design notes") only calls for one
+// custom display face — Comico, used for the wordmark, headlines and
+// chapter titles — plus system serif (Georgia) for body copy and
+// ui-monospace for labels/kickers, so no font files are needed for those.
+export const comico = localFont({
+  src: "../../public/fonts/Comico-Regular.otf",
+  variable: "--font-comico",
+  display: "swap",
+});
+
+// Kept wired (unused by any current page) in case a future pass wants them
+// back for a special flourish — the font files remain in public/fonts.
 export const trovical = localFont({
   src: [
     {
@@ -26,12 +38,6 @@ export const liquidEmbrace = localFont({
 export const advercaseBold = localFont({
   src: "../../public/fonts/Advercase-Font-Demo-Bold.otf",
   variable: "--font-advercase-bold",
-  display: "swap",
-});
-
-export const comico = localFont({
-  src: "../../public/fonts/Comico-Regular.otf",
-  variable: "--font-comico",
   display: "swap",
 });
 

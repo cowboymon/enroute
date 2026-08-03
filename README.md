@@ -26,24 +26,32 @@ Then open http://localhost:3000.
 
 | Method | Label | Duration |
 | --- | --- | --- |
-| `smoke_signal` | Smoke Signal | 30 seconds |
-| `helicopter` | Helicopter | 2 minutes |
-| `carrier_pigeon` | Carrier Pigeon | 15 minutes |
-| `donkey` | Donkey | 30–60 minutes (rolled once, server-side) |
-| `snail` | Snail | 2–4 hours (rolled once, server-side) |
-| `kitty_cat` | Kitty Cat | 10 minutes – 6 hours (rolled once, server-side) |
+| `wombat` | Wombat | 20 min–12 hrs (weighted: mostly short, occasionally an epic; rolled once, server-side) |
+| `blimp` | Blimp | 2–5 hours (rolled once, server-side) |
+| `snail` | Snail | 8–24 hours (rolled once, server-side) |
+| `pigeon` | Pigeon | 30–90 minutes (rolled once, server-side) |
+| `donkey` | Donkey | 4–8 hours (rolled once, server-side) |
+| `smoke` | Smoke signal | 5–20 minutes (rolled once, server-side) |
 
-Random-duration methods are rolled exactly once, at the moment the recipient chooses
-them, and the resulting `arrivalAt` is persisted — it is never re-rolled on subsequent
-visits.
+All six methods roll a random duration (see `rollDurationSeconds` in `lib/deliveryMethods.ts`)
+exactly once, at the moment the recipient chooses them — the resulting `arrivalAt` is
+persisted and never re-rolled on subsequent visits. The wombat is the one special case: it
+rolls from three weighted duration buckets (mostly a short hop, sometimes a multi-hour
+epic) rather than one flat range, but the "roll once, persist `arrivalAt`" rule is
+identical for every method.
 
 ## Data model
 
 A single `Message` model (see `prisma/schema.prisma`) tracks:
 
+- `senderName` / `recipientName`: display names captured at compose time, used by the
+  "handoff" and "reveal" chapters (e.g. "Carried by the wombat", "A note from Mon")
 - `status`: `PENDING_CHOICE` → `IN_TRANSIT` → `ARRIVED`
 - `chosenMethod` / `arrivalAt`: set once the recipient picks a method
 - `readAt`: set the first time the arrived message is actually viewed
+- `recipientEmail`: unused by the current UI (which shares a `/m/[id]` link directly
+  instead of sending real email); kept optional for a future real-delivery notification
+  feature
 - `senderNotifiedReadAt`: modeled for a future "sender gets notified when read" feature,
   not implemented here
 
@@ -53,23 +61,65 @@ implemented in this prototype.
 
 ## Design notes
 
-This is an early prototype — visual design and the color palette are **not final**.
-Everything renders with placeholder shapes/colored blocks for delivery-method art and the
-arrival "seal" animation. All colors are defined as CSS custom properties in
-`app/globals.css` (`--color-bg`, `--color-surface`, `--color-accent`, etc.) so the palette
-can be swapped in one place later.
+Enroute's UI is a four-chapter "journey": **write** (compose + handoff), **choose** (pick
+a carrier), **travel** (transit scene with a live countdown), and **open** (reveal). All
+four share a common shell (`app/components/ChapterShell.tsx`) — a topbar, a left-hand
+"story rail" with the journey outline, and a chapter-progress strip — styled as a
+risograph-y, hand-stamped paper-and-ink look (thick borders, hard drop shadows, oklch
+paper/ink/postbox/moss/plum tokens).
+
+The six delivery methods are now real illustrated carriers (wombat, blimp, snail, pigeon,
+donkey, smoke signal) instead of placeholder emoji/colored blocks:
+
+- Each carrier's card and its travelling marker draw from a real sprite
+  (`public/characters/*.png`) onto a `<canvas>` via `app/components/CarrierSprite.tsx`,
+  which also supports an optional magenta color-key transparency pass (unused by the
+  current art, but kept for sprite sheets that need it).
+- The transit chapter's traveller is animated along a hand-authored path
+  (`lib/journeyPaths.ts`) — purely a visual shape, interpolated by the real elapsed-time
+  percentage computed from the server's `arrivalAt`, never by a client-side timer of its
+  own.
+- Field notes ("oddities") and progress-stage captions rotate in based on how far along
+  the real countdown is (see the `events`/`progress`/`oddities` fields on each
+  `DeliveryMethod` in `lib/deliveryMethods.ts`).
+- The reveal chapter's delivery stamp is drawn from a sprite atlas
+  (`public/stamps/delivered-badges.png`), one badge per carrier.
+
+All colors are defined as CSS custom properties in `app/globals.css` (`--ink`, `--paper`,
+`--postbox`, `--moss`, `--plum`, etc.) so the palette can be swapped in one place; a dark-mode
+override block adjusts the paper/ink tokens for `prefers-color-scheme: dark`.
+
+**Deferred / simplified vs. the design prototype**, in the interest of keeping the
+server-authoritative timing model correct over pixel-perfect fidelity:
+
+- The prototype's `oddity`/`postal` sprite badges (per-event decorative stamps in the
+  story rail and field notes) were dropped in favor of the field-note text alone — only
+  the six carrier-specific *delivered* badges are wired up.
+- The prototype's `support.js`/`image-slot.js`/`ios-frame.jsx`/`*.dc.html` files are
+  design-tool scaffolding (an internal component runtime + an earlier "Longhand" iOS-frame
+  iteration of this same concept), not part of the final visual design — they were read
+  for context but nothing from them was ported.
+- The prototype's client-only `localStorage` state machine (`app.js`) was intentionally
+  **not** ported architecturally — this app keeps the Prisma-backed `status`/`arrivalAt`
+  as the single source of truth; the prototype was used only as a reference for visuals,
+  timing feel, and copy.
 
 ## Fonts
 
-Four local fonts are wired up via `next/font/local` (`app/fonts/index.ts`) and exposed as
-CSS variables so components never reference font names directly:
+The new design only calls for one custom display face — **Comico**, used for the
+wordmark, chapter headlines, and carrier names — plus system serif (Georgia) for body
+copy and `ui-monospace` for labels/kickers, so no other font files are needed for the
+current UI:
 
-- `--font-trovical` — Trovical, used only for headlines/section titles and the "Enroute"
-  logotype.
-- `--font-liquid-embrace` — DK Liquid Embrace, used only for the unlocked message body
-  text on the reveal screen.
-- `--font-advercase-bold` — Advercase Bold, used for stamps/badges/short labels.
-- `--font-advercase-regular` — Advercase Regular, used for everyday UI/body text.
+- `--font-comico` — Comico, wired via `next/font/local` (`app/fonts/index.ts`), used for
+  the "Enroute" wordmark mark and all chapter/carrier headlines.
+- `--font-body` — Georgia/serif, used for body copy, the message textarea, and the
+  revealed message quote.
+- `--font-label` — `ui-monospace`, used for kickers, labels, and stamps.
+
+Trovical, DK Liquid Embrace, and Advercase (the previous placeholder-era fonts) are still
+wired up in `app/fonts/index.ts` and their files remain in `public/fonts/` in case a
+future pass wants them for a flourish, but no current page references them.
 
 ## Tech stack
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   trovical,
   liquidEmbrace,
@@ -11,7 +10,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Enroute",
-  description: "Send a message that arrives on the recipient's terms.",
+  description: "Send a little anticipation — a message that arrives on the recipient's terms.",
 };
 
 export default function RootLayout({
@@ -25,14 +24,8 @@ export default function RootLayout({
       className={`${trovical.variable} ${liquidEmbrace.variable} ${advercaseBold.variable} ${advercaseRegular.variable} ${comico.variable}`}
     >
       <body>
-        <header className="header">
-          <div className="header-inner">
-            <Link href="/" className="logotype">
-              Enroute
-            </Link>
-          </div>
-        </header>
-        <main className="container">{children}</main>
+        <div className="noise" aria-hidden="true" />
+        {children}
       </body>
     </html>
   );

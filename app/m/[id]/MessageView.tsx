@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DELIVERY_METHODS, getDeliveryMethod } from "@/lib/deliveryMethods";
+import { CARRIER_SIZES, journeyPosition } from "@/lib/journeyPaths";
+import ChapterShell from "@/app/components/ChapterShell";
+import CarrierSprite from "@/app/components/CarrierSprite";
 
 type MessageData = {
   id: string;
   status: "PENDING_CHOICE" | "IN_TRANSIT" | "ARRIVED";
+  senderName: string;
+  recipientName: string;
   chosenMethod: string | null;
   arrivalAt: string | null;
   createdAt: string;
@@ -13,19 +18,26 @@ type MessageData = {
   body: string | null;
 };
 
+function formatRemaining(ms: number): string {
+  const mins = Math.max(1, Math.ceil(ms / 60000));
+  if (mins < 60) return `About ${mins} min${mins === 1 ? "" : "s"}`;
+  const hours = Math.floor(mins / 60);
+  const rest = mins % 60;
+  return `About ${hours} hr${hours === 1 ? "" : "s"}${rest ? ` ${rest} min` : ""}`;
+}
+
 export default function MessageView({ id }: { id: string }) {
   const [data, setData] = useState<MessageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [choosing, setChoosing] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [revealing, setRevealing] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const fetchMessage = useCallback(async () => {
     const res = await fetch(`/api/messages/${id}`, { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error("Message not found.");
-    }
+    if (!res.ok) throw new Error("Message not found.");
     const json: MessageData = await res.json();
     setData(json);
     return json;
@@ -38,7 +50,8 @@ export default function MessageView({ id }: { id: string }) {
       .finally(() => setLoading(false));
   }, [fetchMessage]);
 
-  // Tick every second while in transit, purely client-side against arrivalAt.
+  // Tick every second while in transit, purely for the visual countdown —
+  // arrival is still determined by the server's arrivalAt.
   useEffect(() => {
     if (!data || data.status !== "IN_TRANSIT") return;
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -48,12 +61,11 @@ export default function MessageView({ id }: { id: string }) {
   const arrivalTime = data?.arrivalAt ? new Date(data.arrivalAt).getTime() : null;
   const hasArrived = data?.status === "IN_TRANSIT" && arrivalTime !== null && now >= arrivalTime;
 
-  // Once the client-side countdown determines arrival, re-fetch from server
-  // (server is the source of truth) and trigger the reveal animation.
+  // Once the client-side countdown determines arrival, re-fetch from the
+  // server (source of truth) and mark it read.
   useEffect(() => {
     if (!hasArrived) return;
     let cancelled = false;
-    setRevealing(true);
     fetchMessage().then((json) => {
       if (cancelled) return;
       if (json.status === "ARRIVED") {
@@ -78,14 +90,15 @@ export default function MessageView({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.status]);
 
-  async function handleChoose(methodId: string) {
-    setChoosing(methodId);
+  async function handleDispatch() {
+    if (!selected) return;
+    setChoosing(true);
     setError(null);
     try {
       const res = await fetch(`/api/messages/${id}/choose`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ methodId }),
+        body: JSON.stringify({ methodId: selected }),
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
@@ -95,7 +108,7 @@ export default function MessageView({ id }: { id: string }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setChoosing(null);
+      setChoosing(false);
     }
   }
 
@@ -107,122 +120,227 @@ export default function MessageView({ id }: { id: string }) {
     // duration is a reasonable proxy since choose happens right before.
     const total = Math.max(arrival - created, 1);
     const elapsed = Math.min(Math.max(now - created, 0), total);
-    const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+    const pct = Math.min(1, Math.max(0, elapsed / total));
     const remainingMs = Math.max(arrival - now, 0);
     return { pct, remainingMs };
   }, [data, now]);
 
   if (loading) {
-    return <p className="muted">Loading...</p>;
+    return (
+      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Loading...">
+        <section className="chapter">
+          <p className="muted">Loading...</p>
+        </section>
+      </ChapterShell>
+    );
   }
 
   if (error && !data) {
     return (
-      <div className="card">
-        <p className="error-text">{error}</p>
-      </div>
+      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Nothing found">
+        <section className="chapter">
+          <p className="error-text">{error}</p>
+        </section>
+      </ChapterShell>
     );
   }
 
   if (!data) return null;
 
-  if (data.status === "PENDING_CHOICE") {
-    return (
-      <div className="card">
-        <h1 className="section-title">A message is on its way to you</h1>
-        <p className="muted">
-          Choose how you&apos;d like it delivered. The content stays sealed
-          until it arrives.
-        </p>
-        {error && <p className="error-text">{error}</p>}
-        <div className="method-grid">
-          {DELIVERY_METHODS.map((method) => (
-            <button
-              key={method.id}
-              className="method-card"
-              disabled={choosing !== null}
-              onClick={() => handleChoose(method.id)}
-            >
-              <div className="method-icon" aria-hidden />
-              <span className="method-label stamp">{method.label}</span>
-              <span className="method-desc">{method.description}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
+  const railDispatch = method ? `${method.label} · ${data.recipientName}` : "Nothing in the wild yet";
 
-  if (data.status === "IN_TRANSIT" && !hasArrived) {
-    const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
-    const pct = progress?.pct ?? 0;
-    const sceneStyle = method
-      ? ({ ["--scene-bg" as string]: `var(--scene-${method.id})` } as React.CSSProperties)
-      : undefined;
-    const scrimStyle =
-      method?.scrimOpacity !== undefined
-        ? ({ ["--scene-scrim-opacity" as string]: method.scrimOpacity } as React.CSSProperties)
-        : undefined;
+  // ---------------- choose ----------------
+  if (data.status === "PENDING_CHOICE") {
+    const chosenPreview = selected ? getDeliveryMethod(selected) : undefined;
     return (
-      <>
-        <div className="delivery-scene" style={sceneStyle} />
-        <div className="delivery-scene-scrim" style={scrimStyle} />
-        <div className="delivery-scene-content">
-          <span className="scene-method-label">
-            Traveling by {method?.label ?? data.chosenMethod}
-          </span>
-          <div className="scene-countdown">
-            {progress ? formatRemaining(progress.remainingMs) : "..."}
-          </div>
-          <p className="scene-hint">
-            Come back anytime &mdash; your message will be waiting when it
-            arrives.
-          </p>
-        </div>
-        <div className="scene-bar-fixed">
-          <div className="scene-bar-wrap">
-            <span className="scene-bar-marker" style={{ left: `${pct}%` }} aria-hidden>
-              {method?.spriteSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={method.spriteSrc} alt="" />
-              ) : (
-                <span className="is-emoji">{method?.icon ?? "📦"}</span>
-              )}
+      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch}>
+        <section className="chapter choose-chapter">
+          <div className="chapter-copy choose-heading">
+            <span className="kicker">
+              A message for <b>{data.recipientName}</b>
             </span>
-            <div className="scene-bar-track">
-              <div className="scene-bar-fill" style={{ width: `${pct}%` }} />
+            <h2>Pick your messenger.</h2>
+            <p>Fast isn&apos;t better. It&apos;s just less dramatic.</p>
+          </div>
+
+          <div className="carrier-scroller">
+            <div className="carrier-grid" role="list" aria-label="Choose a messenger" ref={gridRef}>
+              {DELIVERY_METHODS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className="carrier-card"
+                  style={{ ["--card" as string]: m.color }}
+                  aria-pressed={selected === m.id}
+                  onClick={() => setSelected(m.id)}
+                >
+                  <div className="carrier-visual">
+                    <CarrierSprite src={m.sprite} label={`${m.label} sprite`} />
+                  </div>
+                  <div className="carrier-meta">
+                    <strong>{m.label}</strong>
+                    <span>{m.speed}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="scroller-controls" aria-label="Browse messengers">
+              <button
+                type="button"
+                className="scroller-button"
+                aria-label="Previous messengers"
+                onClick={() =>
+                  gridRef.current?.scrollBy({
+                    left: -Math.min(gridRef.current.clientWidth * 0.82, 440),
+                    behavior: "smooth",
+                  })
+                }
+              >
+                ←
+              </button>
+              <span>Drag or scroll to browse</span>
+              <button
+                type="button"
+                className="scroller-button"
+                aria-label="Next messengers"
+                onClick={() =>
+                  gridRef.current?.scrollBy({
+                    left: Math.min(gridRef.current.clientWidth * 0.82, 440),
+                    behavior: "smooth",
+                  })
+                }
+              >
+                →
+              </button>
             </div>
           </div>
-        </div>
-      </>
+
+          {error && <p className="error-text">{error}</p>}
+
+          <div className="selection-dock">
+            <div>
+              <span>Your choice</span>
+              <strong>{chosenPreview?.label ?? "Nobody yet"}</strong>
+            </div>
+            <p>{chosenPreview?.copy ?? "Pick the creature or contraption that feels right."}</p>
+            <button
+              className="button button--dark"
+              type="button"
+              disabled={!selected || choosing}
+              onClick={handleDispatch}
+            >
+              <span>
+                {choosing
+                  ? "Sending..."
+                  : chosenPreview
+                  ? `Send them on their way`
+                  : "Send them on their way"}
+              </span>
+              <b>&rarr;</b>
+            </button>
+          </div>
+        </section>
+      </ChapterShell>
     );
   }
 
-  // ARRIVED (or client-detected arrival while server catches up)
-  return (
-    <div className="card">
-      <h1 className="section-title">It&apos;s arrived!</h1>
-      {revealing && !data.body && (
-        <div className="seal-wrap">
-          <div className="seal">OPENING</div>
-        </div>
-      )}
-      {data.body && <p className="message-body">{data.body}</p>}
-      {!data.body && !revealing && <p className="muted">Unsealing your message...</p>}
-    </div>
-  );
-}
+  // ---------------- transit ----------------
+  if (data.status === "IN_TRANSIT" && !hasArrived && method) {
+    const pct = progress?.pct ?? 0;
+    let oddityIndex = 0;
+    method.events.forEach((threshold, index) => {
+      if (pct >= threshold) oddityIndex = index;
+    });
+    const progressNote = method.progress[pct < 0.18 ? 0 : pct < 0.78 ? 1 : 2];
+    const [x, y, scale, rotate] = journeyPosition(method.id, pct);
+    const isObserving = method.events.some((point) => Math.abs(pct - point) < 0.018);
+    const arrivalLabel = arrivalTime
+      ? new Date(arrivalTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : "";
 
-function formatRemaining(ms: number): string {
-  const totalSeconds = Math.ceil(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`;
+    return (
+      <ChapterShell stageIndex={2} status="One message in the wild" railDispatch={railDispatch}>
+        <section className="chapter transit-chapter" style={{ padding: 0 }}>
+          <div className="scene" style={{ backgroundImage: `url('${method.scene}')` }}>
+            <div
+              className={`traveller${method.air ? " is-air" : " is-ground"}${isObserving ? " is-observing" : ""}`}
+              style={
+                {
+                  left: `${x}%`,
+                  top: `${y}%`,
+                  ["--journey-scale" as string]: scale,
+                  ["--journey-rotate" as string]: `${rotate}deg`,
+                  ["--carrier-size" as string]: `${CARRIER_SIZES[method.id] ?? 200}px`,
+                } as React.CSSProperties
+              }
+            >
+              <CarrierSprite src={method.sprite} frame={1} label={`${method.label} carrying the message`} />
+            </div>
+            <div className="scene-caption">
+              <span>
+                Expected around {arrivalLabel} · {method.label}
+              </span>
+              <b>{progress ? formatRemaining(progress.remainingMs) : "A little while"}</b>
+            </div>
+          </div>
+          <div className="transit-panel">
+            <div>
+              <span className="kicker">Currently somewhere out there</span>
+              <h2>{method.headline}</h2>
+              <p>{method.copy}</p>
+              <div className="field-note">
+                <div className="field-note__meta">
+                  <span>Unscheduled character event</span>
+                  <b>{String(oddityIndex + 1).padStart(2, "0")}</b>
+                </div>
+                <div className="field-note__body">
+                  <p key={oddityIndex} style={{ animation: "note-in .42s var(--ease)" }}>
+                    {method.oddities[oddityIndex]}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="progress-wrap">
+              <div className="progress-copy">
+                <span>{progressNote}</span>
+                <b>{Math.floor(pct * 100)}%</b>
+              </div>
+              <div className="progress-track">
+                <i style={{ width: `${pct * 100}%` }} />
+              </div>
+            </div>
+          </div>
+        </section>
+      </ChapterShell>
+    );
   }
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-  return `${seconds}s`;
+
+  // ---------------- reveal ----------------
+  return (
+    <ChapterShell stageIndex={3} status="Delivery complete" railDispatch={railDispatch}>
+      <section className="chapter reveal-chapter">
+        {method && (
+          <i
+            className={`postal-stamp atlas-three ${method.deliveredBadgeClass} reveal-badge`}
+            aria-hidden="true"
+          />
+        )}
+        <div className="arrival-stamp">Delivered, against the odds</div>
+        <div className="open-letter">
+          <span className="kicker">
+            A note from <b>{data.senderName}</b>
+          </span>
+          <blockquote>{data.body ? `"${data.body}"` : "Unsealing your message..."}</blockquote>
+          <div className="signature">Carried by {method?.label ?? data.chosenMethod}</div>
+        </div>
+        <div className="reveal-actions">
+          <a className="button button--primary" href="/">
+            <span>Send one back</span>
+            <b>&#8599;</b>
+          </a>
+        </div>
+      </section>
+    </ChapterShell>
+  );
 }

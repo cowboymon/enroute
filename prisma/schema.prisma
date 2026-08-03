@@ -9,7 +9,14 @@ generator client {
 
 model Message {
   id                   String    @id @default(cuid())
-  recipientEmail       String
+  // Display names captured at compose time for the "handoff"/"reveal"
+  // chapters (e.g. "Mon sent you something" / "Carried by the wombat").
+  senderName           String    @default("")
+  recipientName        String    @default("")
+  // Not used to actually send email in this prototype (the sender shares
+  // the /m/[id] link directly) — kept optional for a future real-delivery
+  // notification feature.
+  recipientEmail       String?
   body                 String
   status               String    @default("PENDING_CHOICE") // PENDING_CHOICE | IN_TRANSIT | ARRIVED
   chosenMethod         String?

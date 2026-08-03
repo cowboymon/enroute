@@ -2,34 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  let payload: { recipientEmail?: string; body?: string };
+  let payload: { senderName?: string; recipientName?: string; body?: string };
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const recipientEmail = payload.recipientEmail?.trim();
+  const senderName = payload.senderName?.trim();
+  const recipientName = payload.recipientName?.trim();
   const body = payload.body?.trim();
 
-  if (!recipientEmail || !body) {
+  if (!senderName || !recipientName || !body) {
     return NextResponse.json(
-      { error: "recipientEmail and body are required." },
-      { status: 400 }
-    );
-  }
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(recipientEmail)) {
-    return NextResponse.json(
-      { error: "recipientEmail must be a valid email address." },
+      { error: "senderName, recipientName and body are required." },
       { status: 400 }
     );
   }
 
   const message = await prisma.message.create({
     data: {
-      recipientEmail,
+      senderName,
+      recipientName,
       body,
       status: "PENDING_CHOICE",
     },

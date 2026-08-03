@@ -19,6 +19,8 @@ export async function GET(
   return NextResponse.json({
     id: message.id,
     status,
+    senderName: message.senderName,
+    recipientName: message.recipientName,
     chosenMethod: message.chosenMethod,
     arrivalAt: message.arrivalAt,
     createdAt: message.createdAt,
