@@ -13,10 +13,17 @@ model Message {
   // chapters (e.g. "Mon sent you something" / "Carried by the wombat").
   senderName           String    @default("")
   recipientName        String    @default("")
-  // Not used to actually send email in this prototype (the sender shares
-  // the /m/[id] link directly) — kept optional for a future real-delivery
-  // notification feature.
-  recipientEmail       String?
+  // The sender's own contact, captured at compose time, so they can be
+  // handed a link back to watch their own message's journey (the /m/[id]
+  // view is reused for both sender and recipient; sender-only vs.
+  // recipient-only actions are gated with a query param, see MessageView).
+  senderContactType    String?
+  senderContact        String?
+  // Who the message is FOR — replaces the previously-unused recipientEmail
+  // field. Captured by the sender at compose time via an Email/Mobile
+  // toggle; both fields are required together.
+  recipientContactType String?
+  recipientContact     String?
   body                 String
   status               String    @default("PENDING_CHOICE") // PENDING_CHOICE | IN_TRANSIT | ARRIVED
   chosenMethod         String?
@@ -24,4 +31,12 @@ model Message {
   createdAt            DateTime  @default(now())
   readAt               DateTime?
   senderNotifiedReadAt DateTime?
+  // Recipient's consent (asked on the transit screen, after dispatch) to be
+  // pinged when the message arrives. notifyContact defaults to blank even
+  // though recipientContact may already be known — the recipient shouldn't
+  // be assumed to want the same contact the sender guessed.
+  notifyOnArrival      Boolean   @default(false)
+  notifyContactType    String?
+  notifyContact        String?
+  notifiedAt           DateTime?
 }

@@ -59,11 +59,49 @@ A single `Message` model (see `prisma/schema.prisma`) tracks:
 - `status`: `PENDING_CHOICE` → `IN_TRANSIT` → `ARRIVED`
 - `chosenMethod` / `arrivalAt`: set once the recipient picks a method
 - `readAt`: set the first time the arrived message is actually viewed
-- `recipientEmail`: unused by the current UI (which shares a `/m/[id]` link directly
-  instead of sending real email); kept optional for a future real-delivery notification
-  feature
+- `senderContactType` / `senderContact`: the sender's own contact (email or mobile),
+  captured at compose time so they can be handed a link back to watch their own
+  message's journey (`/m/[id]?as=sender`)
+- `recipientContactType` / `recipientContact`: who the message is FOR, captured by the
+  sender via an Email/Mobile toggle at compose time. This replaces the old, unused
+  `recipientEmail` field.
+- `notifyOnArrival` / `notifyContactType` / `notifyContact` / `notifiedAt`: the
+  **recipient's** consent, asked on the transit screen (after they've already picked a
+  carrier and dispatched — never before), to be pinged when the message arrives.
+  `notifyContact` intentionally starts blank rather than defaulting to
+  `recipientContact` — the person actually viewing the transit screen may not want to
+  reuse whatever contact the sender guessed at compose time.
 - `senderNotifiedReadAt`: modeled for a future "sender gets notified when read" feature,
   not implemented here
+
+### Sender-side tracking link
+
+There was no existing sender-status page in this prototype, so rather than build a
+separate dashboard, the same `/m/[id]` view is reused for both sides: the sender's
+handoff screen now also surfaces `/m/[id]?as=sender`. The `?as=sender` query param
+gates the one recipient-only action (picking a delivery method) — a sender opening
+their own link sees a "waiting on them to pick a messenger" placeholder instead of the
+carrier picker while the message is `PENDING_CHOICE`, but otherwise watches the same
+transit/reveal chapters. This is a simple query-param check, not real auth — consistent
+with the rest of this app having no auth.
+
+### Arrival notifications (email via Resend)
+
+If a recipient opts in on the transit screen with an **email** contact, the app calls
+`sendArrivalNotification` (see `lib/email.ts`, using the [Resend](https://resend.com)
+npm package) the first time the message is observed as `ARRIVED` and `notifiedAt` is
+still unset — this check lives in the `GET /api/messages/[id]` handler, alongside the
+existing `effectiveStatus` computation. `notifiedAt` is then stamped so it only fires
+once.
+
+If the recipient opts in with a **mobile** number instead, it is stored
+(`notifyContactType`/`notifyContact`) but nothing is sent — there's no SMS provider
+wired up yet (see the comment in `app/api/messages/[id]/route.ts`).
+
+`RESEND_API_KEY` is an **optional** env var. If it isn't set, `sendArrivalNotification`
+is a no-op (it logs and returns) rather than throwing, so the app still runs and builds
+without a real Resend key configured. An optional `RESEND_FROM_EMAIL` overrides the
+default `from` address.
 
 Expired/unclaimed messages (never opened after N days) are representable in this model
 via `createdAt` + the absence of `readAt`, but no background job or cleanup is
@@ -134,6 +172,6 @@ future pass wants them for a flourish, but no current page references them.
 
 ## Tech stack
 
-Next.js (App Router, TypeScript), Prisma + Postgres (Neon), plain CSS with theme tokens. No auth,
-no real email sending, no background jobs — intentionally out of scope for this
-prototype.
+Next.js (App Router, TypeScript), Prisma + Postgres (Neon), plain CSS with theme tokens,
+[Resend](https://resend.com) for arrival emails. No auth, no SMS sending, no background
+jobs — intentionally out of scope for this prototype.

@@ -1,10 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DELIVERY_METHODS, getDeliveryMethod } from "@/lib/deliveryMethods";
 import { CARRIER_SIZES, journeyPosition } from "@/lib/journeyPaths";
 import ChapterShell from "@/app/components/ChapterShell";
 import CarrierSprite from "@/app/components/CarrierSprite";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[\d\s().-]{7,20}$/;
 
 type MessageData = {
   id: string;
@@ -16,6 +20,8 @@ type MessageData = {
   createdAt: string;
   readAt: string | null;
   body: string | null;
+  notifyOnArrival?: boolean;
+  notifyContactType?: string | null;
 };
 
 function formatRemaining(ms: number): string {
@@ -27,6 +33,8 @@ function formatRemaining(ms: number): string {
 }
 
 export default function MessageView({ id }: { id: string }) {
+  const searchParams = useSearchParams();
+  const isSenderView = searchParams.get("as") === "sender";
   const [data, setData] = useState<MessageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +42,13 @@ export default function MessageView({ id }: { id: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Notify-on-arrival consent, offered on the transit screen.
+  const [notifyType, setNotifyType] = useState<"email" | "mobile">("email");
+  const [notifyContact, setNotifyContact] = useState("");
+  const [notifySaving, setNotifySaving] = useState(false);
+  const [notifySaved, setNotifySaved] = useState(false);
+  const [notifyError, setNotifyError] = useState<string | null>(null);
 
   const fetchMessage = useCallback(async () => {
     const res = await fetch(`/api/messages/${id}`, { cache: "no-store" });
@@ -112,6 +127,40 @@ export default function MessageView({ id }: { id: string }) {
     }
   }
 
+  async function handleNotifySave() {
+    setNotifyError(null);
+    const trimmed = notifyContact.trim();
+    if (!trimmed) {
+      setNotifyError("Enter a contact first.");
+      return;
+    }
+    if (notifyType === "email" && !EMAIL_RE.test(trimmed)) {
+      setNotifyError("That doesn't look like a valid email.");
+      return;
+    }
+    if (notifyType === "mobile" && !PHONE_RE.test(trimmed)) {
+      setNotifyError("That doesn't look like a valid mobile number.");
+      return;
+    }
+    setNotifySaving(true);
+    try {
+      const res = await fetch(`/api/messages/${id}/notify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifyContactType: notifyType, notifyContact: trimmed }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Failed to save.");
+      }
+      setNotifySaved(true);
+    } catch (err) {
+      setNotifyError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setNotifySaving(false);
+    }
+  }
+
   const progress = useMemo(() => {
     if (!data?.arrivalAt) return null;
     const arrival = new Date(data.arrivalAt).getTime();
@@ -149,6 +198,25 @@ export default function MessageView({ id }: { id: string }) {
 
   const method = data.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
   const railDispatch = method ? `${method.label} · ${data.recipientName}` : "Nothing in the wild yet";
+
+  // ---------------- choose (sender view) ----------------
+  // The sender's own tracking link reuses this page, but they shouldn't be
+  // able to pick the delivery method on the recipient's behalf.
+  if (data.status === "PENDING_CHOICE" && isSenderView) {
+    return (
+      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch}>
+        <section className="chapter choose-chapter">
+          <div className="chapter-copy choose-heading">
+            <span className="kicker">
+              Sealed for <b>{data.recipientName}</b>
+            </span>
+            <h2>Waiting on them to pick a messenger.</h2>
+            <p>You&apos;ll see the journey here as soon as they choose one.</p>
+          </div>
+        </section>
+      </ChapterShell>
+    );
+  }
 
   // ---------------- choose ----------------
   if (data.status === "PENDING_CHOICE") {
@@ -315,6 +383,54 @@ export default function MessageView({ id }: { id: string }) {
                 <i style={{ width: `${pct * 100}%` }} />
               </div>
             </div>
+            {!isSenderView && (
+              <div className="notify-consent">
+                {notifySaved ? (
+                  <p className="tiny-proof">We&apos;ll nudge you when it arrives.</p>
+                ) : (
+                  <>
+                    <span className="contact-field__label">Want a nudge when it arrives?</span>
+                    <div className="contact-toggle" role="tablist" aria-label="Notify contact type">
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={notifyType === "email"}
+                        className={`contact-toggle__option${notifyType === "email" ? " is-active" : ""}`}
+                        onClick={() => setNotifyType("email")}
+                      >
+                        Email
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={notifyType === "mobile"}
+                        className={`contact-toggle__option${notifyType === "mobile" ? " is-active" : ""}`}
+                        onClick={() => setNotifyType("mobile")}
+                      >
+                        Mobile
+                      </button>
+                    </div>
+                    <div className="notify-consent__row">
+                      <input
+                        value={notifyContact}
+                        onChange={(e) => setNotifyContact(e.target.value)}
+                        placeholder={notifyType === "email" ? "you@example.com" : "+1 555 123 4567"}
+                        inputMode={notifyType === "email" ? "email" : "tel"}
+                      />
+                      <button
+                        className="button"
+                        type="button"
+                        disabled={notifySaving}
+                        onClick={handleNotifySave}
+                      >
+                        <span>{notifySaving ? "Saving..." : "Notify me"}</span>
+                      </button>
+                    </div>
+                    {notifyError && <p className="error-text">{notifyError}</p>}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </section>
       </ChapterShell>

@@ -419,6 +419,43 @@ a {
   line-height: 1.55;
 }
 
+.contact-field {
+  display: grid;
+  gap: 8px;
+}
+
+.contact-field__label {
+  font: 800 10px var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.contact-toggle {
+  display: inline-flex;
+  border: 1.5px solid var(--ink);
+  width: fit-content;
+}
+
+.contact-toggle__option {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  font: 800 10px var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.contact-toggle__option.is-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.contact-toggle__option + .contact-toggle__option {
+  border-left: 1.5px solid var(--ink);
+}
+
 .message-label {
   margin-top: 28px;
   position: relative;
@@ -860,6 +897,33 @@ a {
   font-size: 13px;
   color: oklch(83% 0.025 100);
   margin: 0;
+}
+
+.notify-consent {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid oklch(60% 0.02 100 / 0.4);
+  display: grid;
+  gap: 10px;
+}
+
+.notify-consent .contact-field__label {
+  color: var(--paper);
+}
+
+.notify-consent__row {
+  display: flex;
+  gap: 10px;
+}
+
+.notify-consent__row input {
+  flex: 1;
+  border: 0;
+  border-bottom: 2px solid var(--paper);
+  background: transparent;
+  color: var(--paper);
+  padding: 8px 2px;
+  font: 600 14px var(--font-body);
 }
 
 .progress-copy {

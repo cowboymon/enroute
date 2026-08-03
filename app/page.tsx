@@ -3,24 +3,117 @@
 import { useState } from "react";
 import ChapterShell from "./components/ChapterShell";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[\d\s().-]{7,20}$/;
+
+type ContactType = "email" | "mobile";
+
+function ContactField({
+  label,
+  type,
+  onTypeChange,
+  value,
+  onValueChange,
+  showError,
+}: {
+  label: string;
+  type: ContactType;
+  onTypeChange: (t: ContactType) => void;
+  value: string;
+  onValueChange: (v: string) => void;
+  showError: boolean;
+}) {
+  const trimmed = value.trim();
+  const isValid = trimmed.length > 0 && (type === "email" ? EMAIL_RE.test(trimmed) : PHONE_RE.test(trimmed));
+  return (
+    <div className="contact-field">
+      <span className="contact-field__label">{label}</span>
+      <div className="contact-toggle" role="tablist" aria-label={`${label} contact type`}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={type === "email"}
+          className={`contact-toggle__option${type === "email" ? " is-active" : ""}`}
+          onClick={() => onTypeChange("email")}
+        >
+          Email
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={type === "mobile"}
+          className={`contact-toggle__option${type === "mobile" ? " is-active" : ""}`}
+          onClick={() => onTypeChange("mobile")}
+        >
+          Mobile
+        </button>
+      </div>
+      <input
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder={type === "email" ? "e.g. name@example.com" : "e.g. +1 555 123 4567"}
+        inputMode={type === "email" ? "email" : "tel"}
+        required
+      />
+      {showError && !isValid && (
+        <span className="error-text">
+          {type === "email" ? "Enter a valid email address." : "Enter a valid mobile number."}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [senderName, setSenderName] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [message, setMessage] = useState("");
+  const [recipientContactType, setRecipientContactType] = useState<ContactType>("email");
+  const [recipientContact, setRecipientContact] = useState("");
+  const [senderContactType, setSenderContactType] = useState<ContactType>("email");
+  const [senderContact, setSenderContact] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
+  const [senderLink, setSenderLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [senderCopied, setSenderCopied] = useState(false);
+
+  function isContactValid(type: ContactType, value: string): boolean {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    return type === "email" ? EMAIL_RE.test(trimmed) : PHONE_RE.test(trimmed);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setTouched(true);
     setError(null);
+
+    if (!isContactValid(recipientContactType, recipientContact)) {
+      setError("Enter a valid contact for them before sealing the note.");
+      return;
+    }
+    if (!isContactValid(senderContactType, senderContact)) {
+      setError("Enter a valid contact for yourself before sealing the note.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senderName, recipientName, body: message }),
+        body: JSON.stringify({
+          senderName,
+          recipientName,
+          body: message,
+          recipientContactType,
+          recipientContact: recipientContact.trim(),
+          senderContactType,
+          senderContact: senderContact.trim(),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -28,6 +121,7 @@ export default function HomePage() {
       }
       const data = await res.json();
       setShareLink(`${window.location.origin}/m/${data.id}`);
+      setSenderLink(`${window.location.origin}/m/${data.id}?as=sender`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -37,10 +131,15 @@ export default function HomePage() {
 
   function reset() {
     setShareLink(null);
+    setSenderLink(null);
     setSenderName("");
     setRecipientName("");
     setMessage("");
+    setRecipientContact("");
+    setSenderContact("");
+    setTouched(false);
     setCopied(false);
+    setSenderCopied(false);
   }
 
   async function copyLink() {
@@ -50,6 +149,16 @@ export default function HomePage() {
       setCopied(true);
     } catch {
       setCopied(false);
+    }
+  }
+
+  async function copySenderLink() {
+    if (!senderLink) return;
+    try {
+      await navigator.clipboard.writeText(senderLink);
+      setSenderCopied(true);
+    } catch {
+      setSenderCopied(false);
     }
   }
 
@@ -80,6 +189,21 @@ export default function HomePage() {
               <span>{copied ? "Copied!" : "Copy the link"}</span>
               <b>{copied ? "✓" : "→"}</b>
             </button>
+            {senderLink && (
+              <>
+                <p className="tiny-proof" style={{ marginTop: "1rem" }}>
+                  Want to watch the journey yourself? Here&apos;s your own link (you
+                  can&apos;t re-pick their delivery method from it):
+                </p>
+                <p className="tiny-proof" style={{ wordBreak: "break-all" }}>
+                  {senderLink}
+                </p>
+                <button className="button" type="button" onClick={copySenderLink}>
+                  <span>{senderCopied ? "Copied!" : "Copy your link"}</span>
+                  <b>{senderCopied ? "✓" : "→"}</b>
+                </button>
+              </>
+            )}
             <button className="text-button" type="button" onClick={reset}>
               Write another message
             </button>
@@ -122,6 +246,24 @@ export default function HomePage() {
                 required
               />
             </label>
+          </div>
+          <div className="form-row">
+            <ContactField
+              label="Their contact (so they get the link)"
+              type={recipientContactType}
+              onTypeChange={setRecipientContactType}
+              value={recipientContact}
+              onValueChange={setRecipientContact}
+              showError={touched}
+            />
+            <ContactField
+              label="Your contact (so you can watch it too)"
+              type={senderContactType}
+              onTypeChange={setSenderContactType}
+              value={senderContact}
+              onValueChange={setSenderContact}
+              showError={touched}
+            />
           </div>
           <label className="message-label">
             Your message
