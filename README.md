@@ -11,6 +11,15 @@ countdown until the message "arrives" and unlocks.
 
 ## Running it
 
+Enroute uses Postgres (developed against [Neon](https://neon.tech)) via Prisma. Create a
+`.env` with a `DATABASE_URL` pointing at your database:
+
+```
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+```
+
+Then:
+
 ```bash
 npm install
 npx prisma db push
@@ -19,8 +28,8 @@ npm run dev
 
 Then open http://localhost:3000.
 
-`npm install` also runs `prisma generate` via `postinstall`. `npx prisma db push` creates
-`prisma/dev.db` (a local SQLite file, gitignored) from `prisma/schema.prisma`.
+`npm install` also runs `prisma generate` via `postinstall`. `npx prisma db push` syncs
+the database at `DATABASE_URL` with `prisma/schema.prisma`.
 
 ## Delivery methods
 
@@ -125,6 +134,6 @@ future pass wants them for a flourish, but no current page references them.
 
 ## Tech stack
 
-Next.js (App Router, TypeScript), Prisma + SQLite, plain CSS with theme tokens. No auth,
+Next.js (App Router, TypeScript), Prisma + Postgres (Neon), plain CSS with theme tokens. No auth,
 no real email sending, no background jobs — intentionally out of scope for this
 prototype.
