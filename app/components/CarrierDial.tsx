@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CarrierSprite from "./CarrierSprite";
 
 export type DialCarrier = {
@@ -12,10 +12,10 @@ export type DialCarrier = {
 };
 
 /**
- * Horizontal porthole gauge: carriers pass behind a circular window in a
- * scroll-snap strip; whichever slot is centered is the selection (no
- * separate click-to-select step). A knob on the left and left/right arrows
- * offer a non-drag way to spin it.
+ * Vertical rotary gauge: carrier cards sit in a translateY track behind a
+ * D-shaped viewport window, ringed by a rim + tick scale. A peach selection
+ * band marks the centered row; the knob (with pointer) and up/down arrows
+ * step through the list.
  */
 export default function CarrierDial({
   carriers,
@@ -26,153 +26,117 @@ export default function CarrierDial({
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [centerIndex, setCenterIndex] = useState(0);
-  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const selectedIndex = useMemo(
     () => (selected ? carriers.findIndex((c) => c.id === selected) : -1),
     [carriers, selected]
   );
+  const [index, setIndex] = useState(selectedIndex >= 0 ? selectedIndex : 0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [rowHeight, setRowHeight] = useState(108);
 
-  // Figure out which slot is nearest the viewport center and report it.
-  const detectCenter = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const trackRect = track.getBoundingClientRect();
-    const mid = trackRect.left + trackRect.width / 2;
-    let bestIndex = 0;
-    let bestDist = Infinity;
-    slotRefs.current.forEach((el, i) => {
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const d = Math.abs(r.left + r.width / 2 - mid);
-      if (d < bestDist) {
-        bestDist = d;
-        bestIndex = i;
-      }
-    });
-    setCenterIndex(bestIndex);
-    return bestIndex;
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const h = parseFloat(getComputedStyle(el).getPropertyValue("--row-height"));
+    if (h) setRowHeight(h);
   }, []);
 
-  const handleScroll = useCallback(() => {
-    detectCenter();
-    if (settleTimer.current) clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(() => {
-      const idx = detectCenter();
-      if (idx != null && carriers[idx]) onSelect(carriers[idx].id);
-    }, 120);
-  }, [detectCenter, carriers, onSelect]);
-
-  // Initialize scroll position to the currently selected carrier (or first).
+  // Initialize to the currently selected carrier (or first) on mount.
   useEffect(() => {
-    const track = trackRef.current;
-    const idx = selectedIndex >= 0 ? selectedIndex : 0;
-    const el = slotRefs.current[idx];
-    if (track && el) {
-      el.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
-      setCenterIndex(idx);
-      if (carriers[idx] && selectedIndex < 0) onSelect(carriers[idx].id);
-    }
+    if (selectedIndex < 0 && carriers[0]) onSelect(carriers[0].id);
     // Only run once on mount — subsequent selection is user-driven.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (settleTimer.current) clearTimeout(settleTimer.current);
-    };
-  }, []);
-
-  function spin(direction: -1 | 1) {
-    const nextIndex = Math.min(carriers.length - 1, Math.max(0, centerIndex + direction));
-    const el = slotRefs.current[nextIndex];
-    if (el) {
-      el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
-      setCenterIndex(nextIndex);
-      onSelect(carriers[nextIndex].id);
-    }
+  function move(direction: -1 | 1) {
+    const next = (index + direction + carriers.length) % carriers.length;
+    setIndex(next);
+    onSelect(carriers[next].id);
   }
 
-  const active = carriers[centerIndex];
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowUp") move(-1);
+      if (e.key === "ArrowDown") move(1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, carriers]);
 
   return (
-    <div className="carrier-dial">
-      <div className="dial-knob-col">
-        <div className="dial-knob" aria-hidden="true">
-          <span className="dial-knob-notch" />
-        </div>
-        <div className="dial-knob-arrows">
-          <button
-            type="button"
-            className="dial-arrow dial-arrow--prev"
-            aria-label="Previous messenger"
-            onClick={() => spin(-1)}
-            disabled={centerIndex <= 0}
-          >
-            &#9664;
-          </button>
-          <button
-            type="button"
-            className="dial-arrow dial-arrow--next"
-            aria-label="Next messenger"
-            onClick={() => spin(1)}
-            disabled={centerIndex >= carriers.length - 1}
-          >
-            &#9654;
-          </button>
-        </div>
-      </div>
+    <div className="dial-wrap" ref={wrapRef}>
+      <div className="dial-ticks" aria-hidden="true" />
 
-      <div className="dial-viewport">
-        <div className="dial-porthole" aria-hidden="true" />
-        <div
-          className="dial-track"
-          ref={trackRef}
-          onScroll={handleScroll}
-          role="listbox"
-          aria-label="Choose a messenger"
-        >
-          <div className="dial-spacer" aria-hidden="true" />
-          {carriers.map((m, i) => {
-            const distance = Math.abs(i - centerIndex);
-            const isActive = i === centerIndex;
-            return (
+      <button
+        type="button"
+        className="dial-arrow dial-arrow--up"
+        aria-label="Previous messenger"
+        onClick={() => move(-1)}
+      >
+        &#9650;
+      </button>
+
+      <div className="dial" role="listbox" aria-label="Choose a messenger">
+        <div className="dial-rim dial-rim--outer" aria-hidden="true" />
+        <div className="dial-rim dial-rim--inner" aria-hidden="true" />
+
+        <div className="viewport">
+          <div
+            className="messenger-track"
+            style={{ transform: `translateY(${-index * rowHeight}px)` }}
+          >
+            {carriers.map((m, i) => (
               <div
                 key={m.id}
-                ref={(el) => {
-                  slotRefs.current[i] = el;
-                }}
-                className={`dial-slot${isActive ? " is-active" : ""}`}
-                data-distance={Math.min(distance, 3)}
-                style={{ ["--card" as string]: m.color }}
+                className={`messenger-card${i === index ? " is-selected" : ""}`}
                 role="option"
-                aria-selected={isActive}
-                onClick={() => {
-                  if (!isActive) {
-                    slotRefs.current[i]?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
-                  }
-                  onSelect(m.id);
-                }}
+                aria-selected={i === index}
               >
                 <div className="dial-visual">
                   <CarrierSprite src={m.sprite} colorKey label={`${m.label} sprite`} />
                 </div>
+                <div>
+                  <span className="messenger-name">{m.label}</span>
+                  <span className="messenger-time">{m.speed}</span>
+                </div>
               </div>
-            );
-          })}
-          <div className="dial-spacer" aria-hidden="true" />
+            ))}
+          </div>
+        </div>
+
+        <div className="selection-band" aria-hidden="true" />
+
+        <button type="button" className="selector-knob" aria-label="Next messenger" onClick={() => move(1)}>
+          <span className="selector-knob__face">&#9664;</span>
+          <span className="selector-knob__pointer" aria-hidden="true" />
+        </button>
+
+        <div className="dial-scale" aria-hidden="true">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span key={i} />
+          ))}
         </div>
       </div>
 
-      <div className="dial-flag">
-        <div className="dial-flag-pole" aria-hidden="true" />
-        <div className="dial-flag-banner">
-          <strong>{active ? active.label : "Turn to choose wisely"}</strong>
-          <span>{active ? active.speed : ""}</span>
-        </div>
+      <button
+        type="button"
+        className="dial-arrow dial-arrow--down"
+        aria-label="Next messenger"
+        onClick={() => move(1)}
+      >
+        &#9660;
+      </button>
+
+      <div className="choice-tab" aria-hidden="true">
+        <span>
+          TURN
+          <br />
+          TO CHOOSE
+          <br />
+          WISELY
+        </span>
+        <b>&#10022;</b>
       </div>
     </div>
   );
