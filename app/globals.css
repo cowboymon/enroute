@@ -19,6 +19,15 @@
   --line: oklch(72% 0.025 75);
   --shadow: 0 24px 70px oklch(30% 0.03 60 / 0.14);
 
+  /* Solid, contrast-checked "dimmed" text tokens — use these instead of
+     opacity on text-bearing elements, since opacity fades toward whatever
+     sits behind it and silently breaks WCAG contrast. */
+  --ink-dim: oklch(38% 0.02 330);
+  --muted-dim: oklch(38% 0.025 330);
+  --postbox-text: oklch(46% 0.16 28);
+  --disabled-bg: oklch(88% 0.02 78);
+  --disabled-text: oklch(45% 0.02 330);
+
   --radius: 12px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -254,8 +263,8 @@ a {
   align-items: center;
   padding: 12px 10px;
   border-left: 3px solid transparent;
-  opacity: 0.43;
-  transition: opacity 0.3s, background 0.3s, border 0.3s;
+  color: var(--ink-dim);
+  transition: color 0.3s, background 0.3s, border 0.3s;
 }
 
 .journey li > span {
@@ -269,18 +278,26 @@ a {
 
 .journey li small {
   display: block;
-  color: var(--muted);
+  color: var(--muted-dim);
   margin-top: 2px;
 }
 
 .journey li.is-active {
-  opacity: 1;
+  color: var(--ink);
   background: var(--butter);
   border-left-color: var(--postbox);
 }
 
+.journey li.is-active small {
+  color: var(--muted);
+}
+
 .journey li.is-past {
-  opacity: 0.72;
+  color: var(--ink);
+}
+
+.journey li.is-past small {
+  color: var(--muted);
 }
 
 .journey li.is-past > span::after {
@@ -571,7 +588,9 @@ a {
 }
 
 .button:disabled {
-  opacity: 0.4;
+  background: var(--disabled-bg);
+  color: var(--disabled-text);
+  border-color: var(--disabled-bg);
   cursor: not-allowed;
 }
 
@@ -783,8 +802,7 @@ a {
   width: 108px;
   margin-left: -54px;
   text-align: center;
-  color: var(--muted);
-  opacity: 0.55;
+  color: var(--muted-dim);
   filter: grayscale(0.4);
   cursor: pointer;
   transition: transform 520ms cubic-bezier(0.22, 0.8, 0.24, 1), opacity 0.3s var(--ease), filter 0.3s var(--ease),
@@ -1271,7 +1289,7 @@ a {
   padding: 9px 14px;
   transform: rotate(-3deg);
   background: transparent;
-  color: var(--postbox);
+  color: var(--postbox-text);
   animation: stamp 0.55s var(--spring);
 }
 
@@ -1340,7 +1358,7 @@ a {
 
 /* ---------- generic states ---------- */
 .error-text {
-  color: var(--postbox);
+  color: var(--postbox-text);
   font-size: 13px;
 }
 
