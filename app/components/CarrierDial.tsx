@@ -12,10 +12,10 @@ export type DialCarrier = {
 };
 
 /**
- * Vertical rotary-dial / rolodex carrier picker. Carriers stack in a
- * scroll-snap column inside a fixed-height "viewfinder" window; whichever
- * slot is centered is the selection (no separate click-to-select step).
- * Up/down buttons offer a non-drag way to spin it.
+ * Horizontal porthole gauge: carriers pass behind a circular window in a
+ * scroll-snap strip; whichever slot is centered is the selection (no
+ * separate click-to-select step). A knob on the left and left/right arrows
+ * offer a non-drag way to spin it.
  */
 export default function CarrierDial({
   carriers,
@@ -41,13 +41,13 @@ export default function CarrierDial({
     const track = trackRef.current;
     if (!track) return;
     const trackRect = track.getBoundingClientRect();
-    const mid = trackRect.top + trackRect.height / 2;
+    const mid = trackRect.left + trackRect.width / 2;
     let bestIndex = 0;
     let bestDist = Infinity;
     slotRefs.current.forEach((el, i) => {
       if (!el) return;
       const r = el.getBoundingClientRect();
-      const d = Math.abs(r.top + r.height / 2 - mid);
+      const d = Math.abs(r.left + r.width / 2 - mid);
       if (d < bestDist) {
         bestDist = d;
         bestIndex = i;
@@ -72,7 +72,7 @@ export default function CarrierDial({
     const idx = selectedIndex >= 0 ? selectedIndex : 0;
     const el = slotRefs.current[idx];
     if (track && el) {
-      el.scrollIntoView({ block: "center", behavior: "auto" });
+      el.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
       setCenterIndex(idx);
       if (carriers[idx] && selectedIndex < 0) onSelect(carriers[idx].id);
     }
@@ -90,23 +90,41 @@ export default function CarrierDial({
     const nextIndex = Math.min(carriers.length - 1, Math.max(0, centerIndex + direction));
     const el = slotRefs.current[nextIndex];
     if (el) {
-      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
       setCenterIndex(nextIndex);
       onSelect(carriers[nextIndex].id);
     }
   }
 
+  const active = carriers[centerIndex];
+
   return (
     <div className="carrier-dial">
-      <button
-        type="button"
-        className="dial-arrow dial-arrow--up"
-        aria-label="Previous messenger"
-        onClick={() => spin(-1)}
-        disabled={centerIndex <= 0}
-      >
-        &#9650;
-      </button>
+      <div className="dial-knob-col">
+        <div className="dial-knob" aria-hidden="true">
+          <span className="dial-knob-notch" />
+        </div>
+        <div className="dial-knob-arrows">
+          <button
+            type="button"
+            className="dial-arrow dial-arrow--prev"
+            aria-label="Previous messenger"
+            onClick={() => spin(-1)}
+            disabled={centerIndex <= 0}
+          >
+            &#9664;
+          </button>
+          <button
+            type="button"
+            className="dial-arrow dial-arrow--next"
+            aria-label="Next messenger"
+            onClick={() => spin(1)}
+            disabled={centerIndex >= carriers.length - 1}
+          >
+            &#9654;
+          </button>
+        </div>
+      </div>
 
       <div className="dial-viewport">
         <div className="dial-porthole" aria-hidden="true" />
@@ -134,17 +152,13 @@ export default function CarrierDial({
                 aria-selected={isActive}
                 onClick={() => {
                   if (!isActive) {
-                    slotRefs.current[i]?.scrollIntoView({ block: "center", behavior: "smooth" });
+                    slotRefs.current[i]?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
                   }
                   onSelect(m.id);
                 }}
               >
                 <div className="dial-visual">
                   <CarrierSprite src={m.sprite} colorKey label={`${m.label} sprite`} />
-                </div>
-                <div className="dial-meta">
-                  <strong>{m.label}</strong>
-                  <span>{m.speed}</span>
                 </div>
               </div>
             );
@@ -153,15 +167,13 @@ export default function CarrierDial({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="dial-arrow dial-arrow--down"
-        aria-label="Next messenger"
-        onClick={() => spin(1)}
-        disabled={centerIndex >= carriers.length - 1}
-      >
-        &#9660;
-      </button>
+      <div className="dial-flag">
+        <div className="dial-flag-pole" aria-hidden="true" />
+        <div className="dial-flag-banner">
+          <strong>{active ? active.label : "Turn to choose wisely"}</strong>
+          <span>{active ? active.speed : ""}</span>
+        </div>
+      </div>
     </div>
   );
 }

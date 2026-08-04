@@ -642,32 +642,53 @@ a {
 .carrier-dial {
   margin: 20px 0 18px;
   display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  gap: 8px 14px;
-  justify-items: center;
+  grid-template-columns: auto auto auto;
+  gap: 0 14px;
+  justify-content: center;
   align-items: center;
 }
 
+.dial-knob-col {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.dial-knob {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--paper), var(--ink) 140%);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 3px 0 rgba(37, 35, 31, 0.25);
+}
+
+.dial-knob-notch {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 12px;
+  background: var(--paper);
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.dial-knob-arrows {
+  display: flex;
+  gap: 6px;
+}
+
 .dial-arrow {
-  grid-column: 2;
-  width: 38px;
+  width: 30px;
   height: 30px;
   border: 1.5px solid var(--ink);
   border-radius: 50%;
   background: var(--paper);
-  font-size: 12px;
+  font-size: 11px;
   display: grid;
   place-items: center;
-  justify-self: center;
-}
-
-.dial-arrow--up {
-  grid-row: 1;
-}
-
-.dial-arrow--down {
-  grid-row: 3;
 }
 
 .dial-arrow:hover:not(:disabled) {
@@ -680,12 +701,11 @@ a {
 }
 
 .dial-viewport {
-  grid-column: 2;
-  grid-row: 2;
   position: relative;
-  width: min(420px, 100%);
-  height: 300px;
+  width: min(220px, 46vw);
+  height: min(220px, 46vw);
   overflow: hidden;
+  border-radius: 50%;
 }
 
 .dial-porthole {
@@ -693,17 +713,21 @@ a {
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  border: 2px solid var(--ink);
+  border-radius: 50%;
+  border: 3px solid var(--ink);
   box-shadow:
-    inset 0 42px 34px -30px oklch(94% 0.025 78 / 0.98),
-    inset 0 -42px 34px -30px oklch(94% 0.025 78 / 0.98);
+    inset 42px 0 34px -30px oklch(94% 0.025 78 / 0.98),
+    inset -42px 0 34px -30px oklch(94% 0.025 78 / 0.98),
+    inset 0 0 0 8px oklch(94% 0.025 78 / 0.55);
 }
 
 .dial-track {
   height: 100%;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior-block: contain;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
   scrollbar-width: none;
 }
 
@@ -712,71 +736,84 @@ a {
 }
 
 .dial-spacer {
-  height: calc(50% - 50px);
+  flex: 0 0 calc(50% - 55px);
+  height: 1px;
 }
 
 .dial-slot {
-  height: 100px;
+  flex: 0 0 110px;
+  height: 100%;
   scroll-snap-align: center;
   display: grid;
-  grid-template-columns: 76px 1fr;
-  align-items: center;
-  gap: 14px;
-  padding: 8px 18px;
+  place-items: center;
   cursor: pointer;
-  opacity: 0.35;
-  transform: scale(0.82);
+  opacity: 0.3;
+  transform: scale(0.72);
   transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
 }
 
 .dial-slot[data-distance="0"] {
   opacity: 0.55;
-  transform: scale(0.9);
+  transform: scale(0.82);
 }
 
 .dial-slot.is-active {
   opacity: 1;
   transform: scale(1);
-  background: var(--card, var(--white));
-  border: 2px solid var(--ink);
-  border-radius: 3px 10px 4px 8px;
-  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .dial-visual {
-  height: 70px;
+  height: 110px;
   display: grid;
   place-items: center;
 }
 
 .dial-visual canvas {
-  width: 70px;
+  width: 90px;
   height: auto;
-  max-height: 66px;
+  max-height: 100px;
   object-fit: cover;
   object-position: left;
   image-rendering: pixelated;
   filter: drop-shadow(2px 3px 0 rgba(37, 35, 31, 0.18));
 }
 
-.dial-meta {
+.dial-flag {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+}
+
+.dial-flag-pole {
+  width: 2px;
+  height: 64px;
+  background: var(--ink);
+}
+
+.dial-flag-banner {
+  position: relative;
+  margin-left: -1px;
+  padding: 8px 14px 8px 18px;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 2px 10px 10px 2px;
+  box-shadow: 3px 3px 0 var(--ink);
   display: grid;
   gap: 3px;
+  max-width: 150px;
 }
 
-.dial-meta strong {
-  font: 400 18px var(--font-display);
+.dial-flag-banner strong {
+  font: 400 16px var(--font-display);
+  line-height: 1.15;
 }
 
-.dial-meta span {
+.dial-flag-banner span {
   font: 800 9px var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-}
-
-.dial-slot.is-active .dial-meta span {
-  color: var(--ink);
 }
 
 .selection-dock {
@@ -1420,28 +1457,32 @@ a {
   }
   .carrier-dial {
     margin: 14px 0 12px;
+    grid-template-columns: auto 1fr auto;
+    gap: 0 8px;
   }
   .dial-viewport {
-    height: 250px;
-    width: 100%;
+    height: min(160px, 40vw);
+    width: min(160px, 40vw);
   }
   .dial-slot {
-    height: 84px;
-    gap: 10px;
-    padding: 6px 12px;
+    flex-basis: 84px;
   }
   .dial-spacer {
-    height: calc(50% - 42px);
+    flex-basis: calc(50% - 42px);
   }
   .dial-visual {
-    height: 56px;
+    height: 84px;
   }
   .dial-visual canvas {
-    width: 56px;
-    max-height: 52px;
+    width: 68px;
+    max-height: 78px;
   }
-  .dial-meta strong {
-    font-size: 15px;
+  .dial-flag-banner {
+    max-width: 110px;
+    padding: 6px 10px 6px 14px;
+  }
+  .dial-flag-banner strong {
+    font-size: 14px;
   }
   .selection-dock {
     position: sticky;
