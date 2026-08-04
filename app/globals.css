@@ -1527,6 +1527,34 @@ a {
   }
   .story-rail--custom .transit-panel {
     height: auto;
+    padding: 16px 18px;
+    gap: 10px;
+  }
+  .transit-panel h2 {
+    font-size: 19px;
+    margin: 2px 0;
+  }
+  .transit-panel .kicker {
+    font-size: 9px;
+  }
+  .field-note {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .notify-consent {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .scene {
+    flex: none;
+    height: 28vh;
+    min-height: 190px;
+  }
+  .transit-chapter {
+    height: auto;
+  }
+  .workspace__body {
+    flex: none;
   }
   .workspace {
     order: 1;
@@ -1608,17 +1636,6 @@ a {
     min-height: 44px;
     font-size: 12px;
     gap: 10px;
-  }
-  .transit-chapter {
-    min-height: calc(100vh - 142px);
-    grid-template-rows: 1fr auto;
-  }
-  .transit-panel {
-    padding: 20px;
-    display: block;
-  }
-  .progress-wrap {
-    margin-top: 20px;
   }
   .reveal-chapter {
     min-height: calc(100vh - 142px);
