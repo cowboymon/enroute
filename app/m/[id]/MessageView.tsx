@@ -31,6 +31,7 @@ type MessageData = {
   body: string | null;
   notifyOnArrival?: boolean;
   notifyContactType?: string | null;
+  recipientContact?: string | null;
 };
 
 function formatRemaining(ms: number): string {
@@ -63,6 +64,7 @@ export default function MessageView({ id }: { id: string }) {
   // Notify-on-arrival consent, offered on the transit screen.
   const notifyType: "email" = "email";
   const [notifyContact, setNotifyContact] = useState("");
+  const [editingNotifyContact, setEditingNotifyContact] = useState(false);
   const [notifySaving, setNotifySaving] = useState(false);
   const [notifySaved, setNotifySaved] = useState(false);
   const [notifyError, setNotifyError] = useState<string | null>(null);
@@ -72,6 +74,7 @@ export default function MessageView({ id }: { id: string }) {
     if (!res.ok) throw new Error("Message not found.");
     const json: MessageData = await res.json();
     setData(json);
+    setNotifyContact((prev) => prev || json.recipientContact || "");
     return json;
   }, [id]);
 
@@ -184,7 +187,7 @@ export default function MessageView({ id }: { id: string }) {
     const elapsed = Math.min(Math.max(now - created, 0), total);
     const pct = Math.min(1, Math.max(0, elapsed / total));
     const remainingMs = Math.max(arrival - now, 0);
-    return { pct, remainingMs };
+    return { pct, remainingMs, totalMs: total };
   }, [data, now]);
 
   const method = data?.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
@@ -197,10 +200,20 @@ export default function MessageView({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method?.id]);
 
-  // Rotate the field note every ~6s while in transit, re-picking whenever
-  // the pool itself changes (dispatch -> mid -> near-arrival) or on load.
+  // Rotate the field note on a randomised cadence while in transit,
+  // re-picking whenever the pool itself changes (dispatch -> mid ->
+  // near-arrival) or on load. The cadence scales with the journey's total
+  // duration (clamped 6-90s) so a 30-minute pigeon trip doesn't sit on the
+  // same note for as long as a 9-hour wombat one, and vice versa.
+  const totalMs = progress?.totalMs ?? 0;
   useEffect(() => {
     if (data?.status !== "IN_TRANSIT" || currentPool.length === 0) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const nextDelay = () => {
+      const base = Math.min(90000, Math.max(6000, totalMs * 0.002));
+      const jitter = 0.8 + Math.random() * 0.5; // +/- some variance so it's not purely mechanical
+      return Math.min(90000, Math.max(6000, base * jitter));
+    };
     const pick = () => {
       setFieldNote((prev) => {
         const samePool = prev.pool === currentPool || (prev.pool.length && prev.pool[0] === currentPool[0]);
@@ -208,12 +221,12 @@ export default function MessageView({ id }: { id: string }) {
         const { value, updatedRecentIds } = pickNoRepeat(currentPool, recent, 2);
         return { pool: currentPool, text: value, recent: updatedRecentIds };
       });
+      timer = setTimeout(pick, nextDelay());
     };
     pick();
-    const interval = setInterval(pick, 6500);
-    return () => clearInterval(interval);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.status, currentPool.length, currentPool[0]]);
+  }, [data?.status, currentPool.length, currentPool[0], totalMs]);
 
   if (loading) {
     return (
@@ -309,6 +322,7 @@ export default function MessageView({ id }: { id: string }) {
     const progressNote = method.progress[pct < 0.18 ? 0 : pct < 0.78 ? 1 : 2];
     const [x, y, scale, rotate] = journeyPosition(method.id, pct);
     const isObserving = method.events.some((point) => Math.abs(pct - point) < 0.018);
+    const spriteFrame = method.cycleFramesOnly ? Math.floor(now / 900) % 2 : isObserving ? 2 : 1;
     const arrivalLabel = arrivalTime
       ? new Date(arrivalTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
       : "";
@@ -331,7 +345,7 @@ export default function MessageView({ id }: { id: string }) {
             >
               <CarrierSprite
                 src={method.sprite}
-                frame={isObserving ? 2 : 1}
+                frame={spriteFrame}
                 colorKey
                 label={`${method.label} carrying the message`}
               />
@@ -350,8 +364,7 @@ export default function MessageView({ id }: { id: string }) {
               <p>{method.copy}</p>
               <div className="field-note">
                 <div className="field-note__meta">
-                  <span>Unscheduled character event</span>
-                  <b>{String(Math.floor(pct * 100)).padStart(2, "0")}</b>
+                  <span>Field report</span>
                 </div>
                 <div className="field-note__body">
                   <p key={fieldNote.text} style={{ animation: "note-in .42s var(--ease)" }}>
@@ -362,17 +375,39 @@ export default function MessageView({ id }: { id: string }) {
             </div>
             <div className="progress-wrap">
               <div className="progress-copy">
-                <span>{progressNote}</span>
+                <span>Delivery progress</span>
                 <b>{Math.floor(pct * 100)}%</b>
               </div>
               <div className="progress-track">
                 <i style={{ width: `${pct * 100}%` }} />
               </div>
+              <p className="progress-flavor">{progressNote}</p>
             </div>
             {!isSenderView && (
               <div className="notify-consent">
                 {notifySaved ? (
                   <p className="tiny-proof">We&apos;ll nudge you when it arrives.</p>
+                ) : data.recipientContact && !editingNotifyContact ? (
+                  <p className="notify-consent__compact">
+                    Want a nudge when it arrives? We&apos;ll use{" "}
+                    <button
+                      type="button"
+                      className="link-button"
+                      disabled={notifySaving}
+                      onClick={handleNotifySave}
+                    >
+                      {notifySaving ? "Saving..." : data.recipientContact}
+                    </button>{" "}
+                    &mdash;{" "}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => setEditingNotifyContact(true)}
+                    >
+                      use a different email
+                    </button>
+                    {notifyError && <span className="error-text"> {notifyError}</span>}
+                  </p>
                 ) : (
                   <>
                     <span className="contact-field__label">Want a nudge when it arrives?</span>
