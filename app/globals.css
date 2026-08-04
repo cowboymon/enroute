@@ -913,6 +913,8 @@ a {
 .transit-chapter {
   padding: 0;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .scene {
@@ -920,7 +922,7 @@ a {
   overflow: hidden;
   background-position: center;
   background-size: cover;
-  height: 100%;
+  flex: 1;
   min-height: 400px;
 }
 
@@ -1393,13 +1395,6 @@ a {
   white-space: nowrap;
 }
 
-@media (min-width: 721px) {
-  .ticker {
-    height: 26px;
-    font: 900 9px/24px var(--font-label);
-  }
-}
-
 .ticker div {
   min-width: max-content;
   animation: ticker 95s linear infinite;
@@ -1517,7 +1512,8 @@ a {
     display: none;
   }
   .shell {
-    display: block;
+    display: flex;
+    flex-direction: column;
     min-height: calc(100vh - 100px);
   }
   .story-rail {
@@ -1525,15 +1521,15 @@ a {
   }
   .story-rail--custom {
     display: flex;
+    order: 2;
     border-right: 0;
-    border-bottom: 2px solid var(--ink);
+    border-top: 2px solid var(--ink);
   }
   .story-rail--custom .transit-panel {
     height: auto;
   }
-  .scene {
-    height: 60vh;
-    min-height: 320px;
+  .workspace {
+    order: 1;
   }
   .workspace__chrome {
     height: 42px;
