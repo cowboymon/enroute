@@ -217,7 +217,7 @@ export default function MessageView({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Loading..." fullBleed>
+      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Loading...">
         <section className="chapter">
           <p className="muted">Loading...</p>
         </section>
@@ -227,7 +227,7 @@ export default function MessageView({ id }: { id: string }) {
 
   if (error && !data) {
     return (
-      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Nothing found" fullBleed>
+      <ChapterShell stageIndex={0} status="Post office open" railDispatch="Nothing found">
         <section className="chapter">
           <p className="error-text">{error}</p>
         </section>
@@ -244,7 +244,7 @@ export default function MessageView({ id }: { id: string }) {
   // able to pick the delivery method on the recipient's behalf.
   if (data.status === "PENDING_CHOICE" && isSenderView) {
     return (
-      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch} fullBleed>
+      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch}>
         <section className="chapter choose-chapter">
           <div className="chapter-copy choose-heading">
             <span className="kicker">
@@ -262,7 +262,7 @@ export default function MessageView({ id }: { id: string }) {
   if (data.status === "PENDING_CHOICE") {
     const chosenPreview = selected ? getDeliveryMethod(selected) : undefined;
     return (
-      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch} fullBleed>
+      <ChapterShell stageIndex={1} status="Post office open" railDispatch={railDispatch}>
         <section className="chapter choose-chapter">
           <div className="chapter-copy choose-heading">
             <span className="kicker">
