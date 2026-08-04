@@ -1004,32 +1004,32 @@ a {
   grid-template-rows: 1fr auto auto;
   gap: 28px;
   align-content: start;
-  background: var(--moss);
-  color: var(--ink);
+  background: var(--dark);
+  color: var(--paper);
 }
 
 .transit-panel h2 {
   font: 400 28px var(--font-display);
   margin: 8px 0;
-  color: var(--ink);
+  color: var(--paper);
 }
 
 .transit-panel > div > p {
   font-size: 13px;
-  color: oklch(30% 0.03 145);
+  color: oklch(83% 0.025 100);
   margin: 0;
 }
 
 .notify-consent {
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid oklch(30% 0.03 145 / 0.4);
+  border-top: 1px solid oklch(60% 0.02 100 / 0.4);
   display: grid;
   gap: 10px;
 }
 
 .notify-consent .contact-field__label {
-  color: var(--ink);
+  color: var(--paper);
 }
 
 .notify-consent__row {
@@ -1040,9 +1040,9 @@ a {
 .notify-consent__row input {
   flex: 1;
   border: 0;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: 2px solid var(--paper);
   background: transparent;
-  color: var(--ink);
+  color: var(--paper);
   padding: 8px 2px;
   font: 600 14px var(--font-body);
 }
@@ -1053,18 +1053,18 @@ a {
   font: 800 9px var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink);
+  color: var(--paper);
 }
 
 .progress-flavor {
   margin: 2px 0 0;
   font: 400 12px var(--font-body);
-  color: oklch(30% 0.03 145 / 0.85);
+  color: oklch(83% 0.025 100 / 0.75);
 }
 
 .notify-consent__compact {
   font: 400 13px/1.5 var(--font-body);
-  color: var(--ink);
+  color: var(--paper);
   margin: 0;
 }
 
@@ -1074,7 +1074,7 @@ a {
   padding: 0;
   font: inherit;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--paper);
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
@@ -1083,7 +1083,7 @@ a {
 .progress-track {
   height: 15px;
   background: oklch(22% 0.025 330);
-  border: 2px solid var(--ink);
+  border: 2px solid var(--paper);
   margin: 8px 0;
   box-shadow: 3px 3px 0 var(--postbox);
   padding: 2px;
@@ -1099,7 +1099,7 @@ a {
 
 .field-note {
   margin-top: 16px;
-  border-top: 1px dashed oklch(30% 0.03 145 / 0.55);
+  border-top: 1px dashed oklch(83% 0.025 100 / 0.55);
   padding-top: 12px;
   max-width: 760px;
 }
@@ -1109,7 +1109,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  color: var(--postbox-text);
+  color: var(--butter);
   font: 900 9px var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -1126,7 +1126,7 @@ a {
 
 .field-note p {
   font: 400 20px/1.45 var(--font-body) !important;
-  color: var(--ink) !important;
+  color: var(--paper) !important;
   margin: 0 !important;
 }
 
@@ -1389,8 +1389,7 @@ a {
   display: flex;
   overflow: hidden;
   border-top: 2px solid var(--ink);
-  background: var(--dark);
-  color: var(--paper);
+  background: var(--moss);
   font: 900 11px/38px var(--font-label);
   letter-spacing: 0.12em;
   white-space: nowrap;
@@ -1522,12 +1521,13 @@ a {
   }
   .story-rail--custom {
     display: flex;
+    flex: 1;
     order: 2;
     border-right: 0;
     border-top: 2px solid var(--ink);
   }
   .story-rail--custom .transit-panel {
-    height: auto;
+    height: 100%;
     padding: 16px 18px;
     gap: 10px;
   }
