@@ -191,6 +191,12 @@ export default function MessageView({ id }: { id: string }) {
   const pctForNotes = progress?.pct ?? 0;
   const currentPool = fieldNotePool(method, pctForNotes);
 
+  const deliveredLine = useMemo(() => {
+    if (!method || method.deliveredLines.length === 0) return undefined;
+    return method.deliveredLines[Math.floor(Math.random() * method.deliveredLines.length)];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [method?.id]);
+
   // Rotate the field note every ~6s while in transit, re-picking whenever
   // the pool itself changes (dispatch -> mid -> near-arrival) or on load.
   useEffect(() => {
@@ -464,7 +470,7 @@ export default function MessageView({ id }: { id: string }) {
           </span>
           <blockquote>{data.body ? `"${data.body}"` : "Unsealing your message..."}</blockquote>
           <div className="signature">Carried by {method?.label ?? data.chosenMethod}</div>
-          {method?.deliveredLine && <p className="delivered-line">{method.deliveredLine}</p>}
+          {deliveredLine && <p className="delivered-line">{deliveredLine}</p>}
         </div>
         <div className="reveal-actions">
           <a className="button button--primary" href="/">
