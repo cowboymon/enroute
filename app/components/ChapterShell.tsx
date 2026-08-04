@@ -101,8 +101,7 @@ export default function ChapterShell({
     <>
       <header className="topbar">
         <Link href="/" className="wordmark" aria-label="Restart Enroute">
-          <span className="mark">E</span>
-          <span>Enroute</span>
+          Enroute
         </Link>
         <div className="topbar__right">
           <span className="status-dot" aria-hidden="true" />

@@ -107,10 +107,10 @@ a {
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 22px;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.06em;
   padding: 4px 0;
 }
 
@@ -1535,14 +1535,6 @@ a {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: oklch(92% 0.02 78);
-    --muted: oklch(72% 0.02 78);
-    --paper: oklch(20% 0.02 60);
-    --paper-2: oklch(24% 0.025 60);
-    --paper-3: oklch(28% 0.03 60);
-    --white: oklch(26% 0.02 60);
-    --line: oklch(38% 0.02 60);
-  }
-}
+/* This app is a paper/postal aesthetic only — intentionally no dark-mode
+   palette. Colors always come from the :root values regardless of the
+   visitor's OS theme preference. */
