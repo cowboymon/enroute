@@ -1018,6 +1018,30 @@ a {
   color: var(--paper);
 }
 
+.progress-flavor {
+  margin: 2px 0 0;
+  font: 400 12px var(--font-body);
+  color: oklch(83% 0.025 100 / 0.75);
+}
+
+.notify-consent__compact {
+  font: 400 13px/1.5 var(--font-body);
+  color: var(--paper);
+  margin: 0;
+}
+
+.link-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--paper);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .progress-track {
   height: 15px;
   background: oklch(22% 0.025 330);
