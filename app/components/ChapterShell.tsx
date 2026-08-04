@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { STICKER_CATALOG, type Sticker } from "@/lib/stickerCatalog";
 import { pickNoRepeat } from "@/lib/noRepeatPicker";
 import StatsTeaser from "@/app/components/StatsTeaser";
+import SoundToggle from "@/app/components/SoundToggle";
 
 const RECENT_STICKERS_KEY = "enroute-recent-stickers";
 const MAX_RECENT_STICKERS = 6;
@@ -64,7 +65,11 @@ const TICKER_LINES = [
 // made the separator gap disappear unpredictably. Non-breaking spaces are
 // never collapsed, so the gap around each "·" is always rendered.
 const TICKER_SEPARATOR = "  ·  ";
-const TICKER_TEXT = TICKER_LINES.join(TICKER_SEPARATOR) + TICKER_SEPARATOR;
+// Trailing full stops read as a second, smaller separator right next to
+// the "·", which reads as visual clutter — drop them so each line ends
+// cleanly right at the dot.
+const TICKER_TEXT =
+  TICKER_LINES.map((line) => line.replace(/\.\s*$/, "")).join(TICKER_SEPARATOR) + TICKER_SEPARATOR;
 
 /**
  * Shared journey chrome — topbar, the story rail on the left, and the
@@ -115,6 +120,7 @@ export default function ChapterShell({
           Enroute
         </Link>
         <div className="topbar__right">
+          <SoundToggle />
           <span className="status-dot" aria-hidden="true" />
           <span>{status}</span>
         </div>

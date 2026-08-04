@@ -171,6 +171,42 @@ a {
   animation: pulse 2s infinite;
 }
 
+.sound-toggle {
+  position: relative;
+}
+
+.sound-toggle__button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sound-toggle__button:hover,
+.sound-toggle__button.is-active {
+  background: var(--moss);
+  color: var(--paper);
+}
+
+.sound-toggle__panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  padding: 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  border-radius: 10px;
+}
+
 /* ---------- shell / story rail ---------- */
 .shell {
   min-height: calc(100vh - 112px);
@@ -704,13 +740,21 @@ a {
 
 /* ---------- choose ---------- */
 .choose-chapter {
-  padding-bottom: 34px;
+  padding: clamp(48px, 6vw, 64px);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    oklch(45% 0.02 60 / 0.07),
+    oklch(45% 0.02 60 / 0.07) 1px,
+    transparent 1px,
+    transparent 24px
+  );
 }
 
 .choose-heading {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1.3fr 0.7fr;
   align-items: end;
+  gap: 24px 32px;
   max-width: none;
 }
 
@@ -720,86 +764,103 @@ a {
 
 .choose-heading h2 {
   margin-bottom: 0;
+  font-size: clamp(44px, 6vw, 72px);
+  text-wrap: balance;
 }
 
 .choose-heading p {
-  text-align: right;
-  margin: 0 0 6px;
+  text-align: left;
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 260px;
 }
 
 .wheel-wrap {
   position: relative;
   width: min(560px, 96vw, 52vh);
   aspect-ratio: 1 / 1;
-  margin: 24px auto 18px;
+  margin: 32px auto 24px;
   display: grid;
   place-items: center;
 }
 
-.wheel-arrow {
+.wheel-pointer {
   position: absolute;
   z-index: 30;
+  top: -3px;
   left: 50%;
+  transform: translateX(-50%);
   width: 34px;
   height: 34px;
-  transform: translateX(-50%);
-  border: 1.5px solid var(--ink);
   border-radius: 50%;
-  color: var(--ink);
-  background: var(--paper);
-  font-size: 11px;
   display: grid;
   place-items: center;
+  background: var(--paper-2);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 4px 10px rgba(73, 53, 42, 0.28), inset 0 0 0 4px var(--paper),
+    inset 0 2px 3px rgba(73, 53, 42, 0.16), inset 0 -1px 2px rgba(255, 255, 255, 0.6);
 }
 
-.wheel-arrow:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.wheel-arrow--up {
-  top: -6px;
-}
-
-.wheel-arrow--down {
-  bottom: -6px;
+.wheel-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .wheel-ring {
   position: absolute;
-  inset: 0;
+  inset: 6.25%;
   border-radius: 50%;
-  border: 2px solid var(--ink);
-  box-shadow: 0 10px 30px rgba(69, 48, 33, 0.16), inset 0 0 0 6px var(--paper);
-  background: var(--paper-2);
   overflow: hidden;
+  background: var(--paper-2);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wheel-ring.is-dragging {
+  cursor: grabbing;
 }
 
 .wheel-spin {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  transition: transform 520ms cubic-bezier(0.22, 0.8, 0.24, 1);
+  transition: transform 0.4s cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+.wheel-spin.is-dragging {
+  transition: none;
 }
 
 .wheel-slice {
   position: absolute;
   inset: 0;
   clip-path: var(--clip);
-  background: var(--fill);
-  opacity: 0.55;
-  filter: grayscale(0.4);
-  transition: opacity 0.3s var(--ease), filter 0.3s var(--ease);
+  /* Every slice shares the same 0-0 box, so this radial gradient lines up
+     seamlessly across wedges into one continuous dished disc face rather
+     than a flat sticker-like fill. */
+  background: radial-gradient(circle at 50% 50%, oklch(86% 0.015 72) 0%, oklch(80% 0.02 66) 62%, oklch(74% 0.025 60) 100%);
+  transition: background 0.3s var(--ease);
 }
 
 .wheel-slice.is-selected {
-  opacity: 1;
-  filter: none;
+  background: oklch(78% 0.11 22);
 }
 
 .wheel-items {
   position: absolute;
   inset: 0;
+}
+
+.wheel-items.is-dragging .wheel-item {
+  transition: none;
 }
 
 .wheel-item {
@@ -808,7 +869,7 @@ a {
   top: 50%;
   width: 0;
   height: 0;
-  transition: transform 520ms cubic-bezier(0.22, 0.8, 0.24, 1);
+  transition: transform 0.4s cubic-bezier(0.22, 0.8, 0.24, 1);
 }
 
 .wheel-item-content {
@@ -822,8 +883,12 @@ a {
   color: var(--muted-dim);
   filter: grayscale(0.4);
   cursor: pointer;
-  transition: transform 520ms cubic-bezier(0.22, 0.8, 0.24, 1), opacity 0.3s var(--ease), filter 0.3s var(--ease),
+  transition: transform 0.4s cubic-bezier(0.22, 0.8, 0.24, 1), opacity 0.3s var(--ease), filter 0.3s var(--ease),
     color 0.3s var(--ease);
+}
+
+.wheel-items.is-dragging .wheel-item-content {
+  transition: opacity 0.3s var(--ease), filter 0.3s var(--ease), color 0.3s var(--ease);
 }
 
 .wheel-item.is-selected .wheel-item-content {
@@ -868,24 +933,26 @@ a {
   width: 108px;
   height: 108px;
   border-radius: 50%;
-  background: var(--paper);
+  background: var(--paper-2);
   border: 3px solid var(--ink);
-  box-shadow: 0 6px 16px rgba(73, 53, 42, 0.25), inset 0 0 0 6px var(--paper-2);
+  box-shadow: 0 6px 16px rgba(73, 53, 42, 0.3), inset 0 0 0 6px var(--paper), inset 0 3px 4px rgba(73, 53, 42, 0.18),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.6);
   display: grid;
   place-items: center;
 }
 
-.wheel-hub .mark {
-  width: 44px;
-  height: 50px;
-  font-size: 26px;
-  box-shadow: 4px 4px 0 var(--ink);
+.wheel-hub__mark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--ink);
 }
 
 
 .selection-dock {
   display: grid;
-  grid-template-columns: 0.7fr 1.4fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 24px;
   align-items: center;
   border-top: 2px solid var(--ink);
@@ -900,13 +967,24 @@ a {
 }
 
 .selection-dock strong {
-  font-size: 20px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 28px;
 }
 
 .selection-dock p {
   font-size: 13px;
   color: var(--muted);
-  margin: 0;
+  margin: 4px 0 0;
+}
+
+.selection-dock .button--dark {
+  justify-self: end;
+  border-radius: 999px;
+  background: var(--moss);
+  border-color: var(--moss);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* ---------- transit ---------- */
@@ -937,13 +1015,15 @@ a {
 .traveller {
   --journey-scale: 1;
   --journey-rotate: 0deg;
+  --journey-facing: 1;
   --carrier-size: 200px;
   position: absolute;
   left: 8%;
   top: 72%;
   width: var(--carrier-size);
   height: var(--carrier-size);
-  transform: translate(-50%, -50%) scale(var(--journey-scale)) rotate(var(--journey-rotate));
+  transform: translate(-50%, -50%) scaleX(var(--journey-facing)) scale(var(--journey-scale))
+    rotate(var(--journey-rotate));
   transform-origin: center bottom;
   z-index: 3;
   transition: left 5s linear, top 5s linear, transform 5s linear;
@@ -1392,6 +1472,7 @@ a {
   background: var(--moss);
   font: 900 11px/38px var(--font-label);
   letter-spacing: 0.12em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1599,10 +1680,8 @@ a {
     width: 84px;
     height: 84px;
   }
-  .wheel-hub .mark {
-    width: 34px;
-    height: 38px;
-    font-size: 20px;
+  .wheel-hub__mark {
+    font-size: 28px;
   }
   .wheel-item-content {
     width: 68px;
