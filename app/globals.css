@@ -639,142 +639,144 @@ a {
   margin: 0 0 6px;
 }
 
-.carrier-scroller {
-  margin: 28px calc(clamp(22px, 4vw, 54px) * -1) 18px;
-  overflow: hidden;
-}
-
-.carrier-grid {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  padding: 8px clamp(22px, 4vw, 54px) 18px;
-  scroll-padding-inline: clamp(22px, 4vw, 54px);
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: none;
-}
-
-.carrier-grid::-webkit-scrollbar {
-  display: none;
-}
-
-.carrier-card {
-  flex: 0 0 clamp(280px, 34vw, 430px);
-  min-height: 280px;
-  scroll-snap-align: center;
-  border: 1.5px solid var(--ink);
-  background: var(--card, var(--white));
-  padding: 20px;
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s var(--ease), box-shadow 0.2s, opacity 0.2s;
+.carrier-dial {
+  margin: 20px 0 18px;
   display: grid;
-  grid-template-rows: 1fr auto;
-  isolation: isolate;
-  border-radius: 3px 10px 4px 8px;
-}
-
-.carrier-card:nth-child(2n) {
-  transform: rotate(0.35deg);
-}
-
-.carrier-card:nth-child(3n) {
-  transform: rotate(-0.3deg);
-}
-
-.carrier-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 0 rgba(37, 35, 31, 0.18);
-}
-
-.carrier-card[aria-pressed="true"] {
-  outline: 4px solid var(--ink);
-  outline-offset: -4px;
-}
-
-.carrier-card[aria-pressed="true"]::after {
-  content: "\2713";
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--ink);
-  color: var(--white);
-  z-index: 4;
-}
-
-.carrier-visual {
-  height: 190px;
-  display: grid;
-  place-items: center;
-  position: relative;
-}
-
-.carrier-visual canvas {
-  width: 210px;
-  height: auto;
-  max-height: 185px;
-  object-fit: cover;
-  object-position: left;
-  image-rendering: pixelated;
-  filter: drop-shadow(3px 5px 0 rgba(37, 35, 31, 0.18));
-}
-
-.carrier-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 12px;
-  position: relative;
-  z-index: 2;
-}
-
-.carrier-meta strong {
-  font: 400 18px var(--font-display);
-}
-
-.carrier-meta span {
-  font: 800 9px var(--font-label);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.scroller-controls {
-  display: flex;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px 14px;
+  justify-items: center;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 0 clamp(22px, 4vw, 54px);
 }
 
-.scroller-controls span {
-  font: 800 9px var(--font-label);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
-.scroller-button {
+.dial-arrow {
+  grid-column: 2;
   width: 38px;
-  height: 38px;
+  height: 30px;
   border: 1.5px solid var(--ink);
   border-radius: 50%;
   background: var(--paper);
-  font-size: 18px;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+}
+
+.dial-arrow--up {
+  grid-row: 1;
+}
+
+.dial-arrow--down {
+  grid-row: 3;
+}
+
+.dial-arrow:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dial-arrow:disabled {
+  opacity: 0.3;
+}
+
+.dial-viewport {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  width: min(420px, 100%);
+  height: 300px;
+  overflow: hidden;
+}
+
+.dial-porthole {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border: 2px solid var(--ink);
+  box-shadow:
+    inset 0 42px 34px -30px oklch(94% 0.025 78 / 0.98),
+    inset 0 -42px 34px -30px oklch(94% 0.025 78 / 0.98);
+}
+
+.dial-track {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-block: contain;
+  scrollbar-width: none;
+}
+
+.dial-track::-webkit-scrollbar {
+  display: none;
+}
+
+.dial-spacer {
+  height: calc(50% - 50px);
+}
+
+.dial-slot {
+  height: 100px;
+  scroll-snap-align: center;
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  cursor: pointer;
+  opacity: 0.35;
+  transform: scale(0.82);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.dial-slot[data-distance="0"] {
+  opacity: 0.55;
+  transform: scale(0.9);
+}
+
+.dial-slot.is-active {
+  opacity: 1;
+  transform: scale(1);
+  background: var(--card, var(--white));
+  border: 2px solid var(--ink);
+  border-radius: 3px 10px 4px 8px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.dial-visual {
+  height: 70px;
   display: grid;
   place-items: center;
 }
 
-.scroller-button:hover {
-  background: var(--ink);
-  color: var(--paper);
+.dial-visual canvas {
+  width: 70px;
+  height: auto;
+  max-height: 66px;
+  object-fit: cover;
+  object-position: left;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 3px 0 rgba(37, 35, 31, 0.18));
+}
+
+.dial-meta {
+  display: grid;
+  gap: 3px;
+}
+
+.dial-meta strong {
+  font: 400 18px var(--font-display);
+}
+
+.dial-meta span {
+  font: 800 9px var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.dial-slot.is-active .dial-meta span {
+  color: var(--ink);
 }
 
 .selection-dock {
@@ -1416,35 +1418,30 @@ a {
   .choose-heading p {
     text-align: left;
   }
-  .carrier-scroller {
-    margin: 20px -18px 14px;
+  .carrier-dial {
+    margin: 14px 0 12px;
   }
-  .carrier-grid {
+  .dial-viewport {
+    height: 250px;
+    width: 100%;
+  }
+  .dial-slot {
+    height: 84px;
     gap: 10px;
-    padding: 6px 18px 16px;
-    scroll-padding-inline: 18px;
+    padding: 6px 12px;
   }
-  .carrier-card {
-    flex-basis: 82vw;
-    min-height: 230px;
-    padding: 14px;
+  .dial-spacer {
+    height: calc(50% - 42px);
   }
-  .carrier-visual {
-    height: 150px;
+  .dial-visual {
+    height: 56px;
   }
-  .carrier-visual canvas {
-    width: 170px;
-    max-height: 145px;
+  .dial-visual canvas {
+    width: 56px;
+    max-height: 52px;
   }
-  .carrier-meta {
-    display: grid;
-    gap: 3px;
-  }
-  .scroller-controls {
-    padding: 0 18px;
-  }
-  .scroller-controls span {
-    margin-right: auto;
+  .dial-meta strong {
+    font-size: 15px;
   }
   .selection-dock {
     position: sticky;

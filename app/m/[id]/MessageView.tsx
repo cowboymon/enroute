@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DELIVERY_METHODS, getDeliveryMethod } from "@/lib/deliveryMethods";
 import { CARRIER_SIZES, journeyPosition } from "@/lib/journeyPaths";
 import { pickNoRepeat } from "@/lib/noRepeatPicker";
 import ChapterShell from "@/app/components/ChapterShell";
+import CarrierDial from "@/app/components/CarrierDial";
 import CarrierSprite from "@/app/components/CarrierSprite";
 
 /** Field-note pool for a given elapsed-percentage, moment-based on the carrier's copy buckets. */
@@ -49,7 +50,6 @@ export default function MessageView({ id }: { id: string }) {
   const [choosing, setChoosing] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const gridRef = useRef<HTMLDivElement>(null);
 
   // Field-note rotation: picks a new line from the current moment's pool
   // every few seconds, avoiding repeats of the last couple shown. Resets
@@ -272,57 +272,7 @@ export default function MessageView({ id }: { id: string }) {
             <p>Fast isn&apos;t better. It&apos;s just less dramatic.</p>
           </div>
 
-          <div className="carrier-scroller">
-            <div className="carrier-grid" role="list" aria-label="Choose a messenger" ref={gridRef}>
-              {DELIVERY_METHODS.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className="carrier-card"
-                  style={{ ["--card" as string]: m.color }}
-                  aria-pressed={selected === m.id}
-                  onClick={() => setSelected(m.id)}
-                >
-                  <div className="carrier-visual">
-                    <CarrierSprite src={m.sprite} colorKey label={`${m.label} sprite`} />
-                  </div>
-                  <div className="carrier-meta">
-                    <strong>{m.label}</strong>
-                    <span>{m.speed}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="scroller-controls" aria-label="Browse messengers">
-              <button
-                type="button"
-                className="scroller-button"
-                aria-label="Previous messengers"
-                onClick={() =>
-                  gridRef.current?.scrollBy({
-                    left: -Math.min(gridRef.current.clientWidth * 0.82, 440),
-                    behavior: "smooth",
-                  })
-                }
-              >
-                ←
-              </button>
-              <span>Drag or scroll to browse</span>
-              <button
-                type="button"
-                className="scroller-button"
-                aria-label="Next messengers"
-                onClick={() =>
-                  gridRef.current?.scrollBy({
-                    left: Math.min(gridRef.current.clientWidth * 0.82, 440),
-                    behavior: "smooth",
-                  })
-                }
-              >
-                →
-              </button>
-            </div>
-          </div>
+          <CarrierDial carriers={DELIVERY_METHODS} selected={selected} onSelect={setSelected} />
 
           {error && <p className="error-text">{error}</p>}
 
