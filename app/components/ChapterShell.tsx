@@ -71,12 +71,15 @@ export default function ChapterShell({
   status,
   railDispatch,
   children,
+  fullBleed = false,
 }: {
   /** 0 = compose/handoff, 1 = choose, 2 = transit, 3 = reveal */
   stageIndex: number;
   status: string;
   railDispatch: string;
   children: React.ReactNode;
+  /** Drops the story rail entirely so the workspace (e.g. the transit scene) spans full width. */
+  fullBleed?: boolean;
 }) {
   const clampedIndex = Math.max(0, Math.min(3, stageIndex));
 
@@ -109,46 +112,48 @@ export default function ChapterShell({
         </div>
       </header>
 
-      <main className="shell">
-        <aside className="story-rail">
-          <div className="eyebrow">A slower messaging experiment</div>
-          <h1>
-            Send a little
-            <br />
-            <em>anticipation.</em>
-          </h1>
-          <p className="lede">
-            Write something now. Let them choose how it finds its way. The waiting is
-            part of the message.
-          </p>
-          <div className="postal-cluster" aria-hidden="true">
-            <i className={`postal-stamp ${stickers[0].atlas} ${stickers[0].badgeClass} sticker-slot-1`} />
-            <i className={`postal-stamp ${stickers[1].atlas} ${stickers[1].badgeClass} sticker-slot-2`} />
-          </div>
+      <main className={`shell${fullBleed ? " shell--full-bleed" : ""}`}>
+        {!fullBleed && (
+          <aside className="story-rail">
+            <div className="eyebrow">A slower messaging experiment</div>
+            <h1>
+              Send a little
+              <br />
+              <em>anticipation.</em>
+            </h1>
+            <p className="lede">
+              Write something now. Let them choose how it finds its way. The waiting is
+              part of the message.
+            </p>
+            <div className="postal-cluster" aria-hidden="true">
+              <i className={`postal-stamp ${stickers[0].atlas} ${stickers[0].badgeClass} sticker-slot-1`} />
+              <i className={`postal-stamp ${stickers[1].atlas} ${stickers[1].badgeClass} sticker-slot-2`} />
+            </div>
 
-          <ol className="journey" aria-label="Message journey">
-            {JOURNEY.map((item, i) => (
-              <li
-                key={item.key}
-                className={
-                  i === clampedIndex ? "is-active" : i < clampedIndex ? "is-past" : undefined
-                }
-              >
-                <span>{item.index}</span>
-                <div>
-                  <b>{item.title}</b>
-                  <small>{item.note}</small>
-                </div>
-              </li>
-            ))}
-          </ol>
+            <ol className="journey" aria-label="Message journey">
+              {JOURNEY.map((item, i) => (
+                <li
+                  key={item.key}
+                  className={
+                    i === clampedIndex ? "is-active" : i < clampedIndex ? "is-past" : undefined
+                  }
+                >
+                  <span>{item.index}</span>
+                  <div>
+                    <b>{item.title}</b>
+                    <small>{item.note}</small>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-          <div className="rail-note">
-            <span>Current dispatch</span>
-            <strong>{railDispatch}</strong>
-            <StatsTeaser />
-          </div>
-        </aside>
+            <div className="rail-note">
+              <span>Current dispatch</span>
+              <strong>{railDispatch}</strong>
+              <StatsTeaser />
+            </div>
+          </aside>
+        )}
 
         <section className="workspace" aria-live="polite">
           <div className="workspace__chrome">

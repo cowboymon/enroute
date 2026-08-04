@@ -314,7 +314,7 @@ export default function MessageView({ id }: { id: string }) {
       : "";
 
     return (
-      <ChapterShell stageIndex={2} status="One message in the wild" railDispatch={railDispatch}>
+      <ChapterShell stageIndex={2} status="One message in the wild" railDispatch={railDispatch} fullBleed>
         <section className="chapter transit-chapter" style={{ padding: 0 }}>
           <div className="scene" style={{ backgroundImage: `url('${method.scene}')` }}>
             <div
