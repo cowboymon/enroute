@@ -4,10 +4,13 @@ Enroute is a messaging prototype where the **recipient**, not the sender, choose
 message is delivered — and that choice determines a real, server-tracked delivery
 duration before the message unlocks.
 
-The sender writes a message and gets a shareable link (`/m/[id]`) standing in for a real
-email notification (not implemented in this prototype). The recipient opens the link,
-picks a delivery method with no preview of the content, and watches a server-computed
-countdown until the message "arrives" and unlocks.
+The sender writes a message and gets a shareable link (`/m/[id]`) to send the recipient
+themselves — Enroute never emails it on the sender's behalf. The recipient opens the
+link, picks a delivery method with no preview of the content, and watches a
+server-computed countdown until the message "arrives" and unlocks. The recipient can
+optionally opt in, once they're on the transit screen, to get a real email (via Resend)
+the moment it arrives — see [Arrival notifications](#arrival-notifications-email-via-resend)
+below.
 
 ## Running it
 
@@ -59,13 +62,14 @@ A single `Message` model (see `prisma/schema.prisma`) tracks:
 - `status`: `PENDING_CHOICE` → `IN_TRANSIT` → `ARRIVED`
 - `chosenMethod` / `arrivalAt`: set once the recipient picks a method
 - `readAt`: set the first time the arrived message is actually viewed
-- `senderContactType` / `senderContact`: the sender's own email, captured at compose
-  time so they can be handed a link back to watch their own message's journey
-  (`/m/[id]?as=sender`). `senderContactType` is currently always `"email"` — the field
-  is kept generic in the schema in case another contact type is added later.
 - `recipientContactType` / `recipientContact`: who the message is FOR, captured as an
-  email address by the sender at compose time. This replaces the old, unused
-  `recipientEmail` field.
+  email address by the sender at compose time — the only contact info the compose form
+  asks for. It's used solely so the sender can copy/share the link; Enroute never sends
+  it automatically.
+- `senderContactType` / `senderContact`: unused by the current compose form (the sender
+  isn't asked for their own email anymore — they get their tracking link,
+  `/m/[id]?as=sender`, for free, no email required). Left nullable in the schema for any
+  older rows and in case a future feature wants it back.
 - `notifyOnArrival` / `notifyContactType` / `notifyContact` / `notifiedAt`: the
   **recipient's** consent, asked on the transit screen (after they've already picked a
   carrier and dispatched — never before), to be pinged when the message arrives.
@@ -100,7 +104,14 @@ once.
 `RESEND_API_KEY` is an **optional** env var. If it isn't set, `sendArrivalNotification`
 is a no-op (it logs and returns) rather than throwing, so the app still runs and builds
 without a real Resend key configured. An optional `RESEND_FROM_EMAIL` overrides the
-default `from` address.
+default `from` address (`Enroute <onboarding@resend.dev>`).
+
+To turn real arrival emails on: grab an API key from the
+[Resend dashboard](https://resend.com/api-keys) and set `RESEND_API_KEY` (locally in
+`.env.local`, or as an env var on whatever host runs the app). Without a verified
+sending domain, Resend's shared `resend.dev` address only delivers to the email on your
+own Resend account — verify a domain and set `RESEND_FROM_EMAIL` once you want to send
+to arbitrary recipients.
 
 Expired/unclaimed messages (never opened after N days) are representable in this model
 via `createdAt` + the absence of `readAt`, but no background job or cleanup is
