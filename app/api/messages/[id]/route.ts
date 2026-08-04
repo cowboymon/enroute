@@ -81,6 +81,7 @@ export async function GET(
     readAt: message.readAt,
     notifyOnArrival: message.notifyOnArrival,
     notifyContactType: message.notifyContactType,
+    recipientContact: message.recipientContact,
     body: status === "ARRIVED" ? message.body : null,
   });
 }

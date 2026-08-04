@@ -25,6 +25,13 @@ export type DeliveryMethod = {
   sprite: string;
   /** true for carriers that travel through the air (used to pick the idle-bob animation) */
   air: boolean;
+  /**
+   * When true, the travelling sprite just alternates between frames 0 and 1
+   * instead of swapping to the sheet's "observing" frame 2 at event
+   * thresholds. Used for carriers whose frame-2 pose (e.g. looking down at
+   * something) doesn't read well mid-flight.
+   */
+  cycleFramesOnly?: boolean;
   /** accent color for the carrier's card, as a CSS color value */
   color: string;
   /** CSS class (see app/globals.css) for this carrier's reveal-chapter delivery stamp */
@@ -257,6 +264,7 @@ export const DELIVERY_METHODS: DeliveryMethod[] = [
     scene: "/bg/sky-bg.png",
     sprite: "/characters/pigeon.png",
     air: true,
+    cycleFramesOnly: true,
     color: "oklch(84% .055 255)",
     deliveredBadgeClass: "delivered-pigeon",
     durationRoll: { kind: "uniform", minSeconds: 30 * 60, maxSeconds: 90 * 60 },

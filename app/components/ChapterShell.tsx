@@ -59,7 +59,12 @@ const TICKER_LINES = [
   "This is not the app for urgent news.",
 ];
 
-const TICKER_TEXT = TICKER_LINES.join("  ·  ") + "  ·  ";
+// Regular spaces collapse under normal CSS whitespace rules (`white-space:
+// nowrap` only stops wrapping, it doesn't preserve runs of spaces), which
+// made the separator gap disappear unpredictably. Non-breaking spaces are
+// never collapsed, so the gap around each "·" is always rendered.
+const TICKER_SEPARATOR = "  ·  ";
+const TICKER_TEXT = TICKER_LINES.join(TICKER_SEPARATOR) + TICKER_SEPARATOR;
 
 /**
  * Shared journey chrome — topbar, the story rail on the left, and the
