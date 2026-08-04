@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DELIVERY_METHODS, getDeliveryMethod } from "@/lib/deliveryMethods";
-import { CARRIER_SIZES, journeyPosition } from "@/lib/journeyPaths";
+import { CARRIER_SIZES, journeyFacing, journeyPosition } from "@/lib/journeyPaths";
 import { pickNoRepeat } from "@/lib/noRepeatPicker";
 import ChapterShell from "@/app/components/ChapterShell";
 import CarrierDial from "@/app/components/CarrierDial";
@@ -321,6 +321,7 @@ export default function MessageView({ id }: { id: string }) {
     const pct = progress?.pct ?? 0;
     const progressNote = method.progress[pct < 0.18 ? 0 : pct < 0.78 ? 1 : 2];
     const [x, y, scale, rotate] = journeyPosition(method.id, pct);
+    const facing = journeyFacing(method.id, pct);
     const isObserving = method.events.some((point) => Math.abs(pct - point) < 0.018);
     const spriteFrame = method.cycleFramesOnly ? Math.floor(now / 900) % 2 : isObserving ? 2 : 1;
     const arrivalLabel = arrivalTime
@@ -339,6 +340,7 @@ export default function MessageView({ id }: { id: string }) {
                   top: `${y}%`,
                   ["--journey-scale" as string]: scale,
                   ["--journey-rotate" as string]: `${rotate}deg`,
+                  ["--journey-facing" as string]: facing,
                   ["--carrier-size" as string]: `${CARRIER_SIZES[method.id] ?? 200}px`,
                 } as React.CSSProperties
               }

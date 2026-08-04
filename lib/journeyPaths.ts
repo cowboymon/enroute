@@ -93,3 +93,21 @@ export function journeyPosition(key: string, pct: number): Waypoint {
     a[3] + (b[3] - a[3]) * mix,
   ];
 }
+
+/**
+ * Sprite art is drawn facing right. The path is mostly left-to-right, but a
+ * few carriers (e.g. the pigeon circling back to judge a statue) briefly
+ * double back — without this, the sprite kept facing right while visually
+ * travelling left, so the character appeared to be looking the wrong way.
+ * Returns 1 (facing right) or -1 (facing left, mirror the sprite) for the
+ * current path segment.
+ */
+export function journeyFacing(key: string, pct: number): 1 | -1 {
+  const path = JOURNEY_PATHS[key];
+  if (!path || path.length < 2) return 1;
+  const clamped = Math.max(0, Math.min(1, pct));
+  const scaled = clamped * (path.length - 1);
+  const index = Math.min(path.length - 2, Math.floor(scaled));
+  const dx = path[index + 1][0] - path[index][0];
+  return dx < 0 ? -1 : 1;
+}

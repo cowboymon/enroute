@@ -147,7 +147,7 @@ export default function HomePage() {
           </div>
           <div className="chapter-copy chapter-copy--center">
             <span className="kicker">Message sealed</span>
-            <h2>Sealed. {recipientName || "They"} just need the link.</h2>
+            <h2>Sealed. {recipientName || "They"} just needs the link.</h2>
             <p>
               Enroute doesn&apos;t send real emails in this prototype &mdash; share this
               link with {recipientName || "them"} directly. They&apos;ll pick how it
