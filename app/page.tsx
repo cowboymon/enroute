@@ -24,7 +24,10 @@ function ContactField({
   const isValid = trimmed.length > 0 && EMAIL_RE.test(trimmed);
   return (
     <label>
-      {label}
+      <span className="field-label-row">
+        {label}
+        <span className="field-hint field-hint--inline">{hint}</span>
+      </span>
       <input
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
@@ -32,7 +35,6 @@ function ContactField({
         inputMode="email"
         required
       />
-      <span className="field-hint">{hint}</span>
       <span className="field-error-slot">
         {showError && !isValid && <span className="error-text">Enter a valid email address.</span>}
       </span>
@@ -206,7 +208,6 @@ export default function HomePage() {
                   maxLength={30}
                   required
                 />
-                <span className="field-hint">So they know who it&apos;s from.</span>
               </label>
             </div>
             <div className="field-group">
@@ -220,11 +221,10 @@ export default function HomePage() {
                   maxLength={30}
                   required
                 />
-                <span className="field-hint">So the note reads right.</span>
               </label>
               <ContactField
-                label="Their email address"
-                hint="Just for the link — we won't use it for anything else."
+                label="Email address"
+                hint="Just for the link."
                 value={recipientContact}
                 onValueChange={setRecipientContact}
                 showError={touched}

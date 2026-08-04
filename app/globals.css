@@ -459,6 +459,18 @@ a {
   color: var(--muted);
 }
 
+.field-label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.field-hint--inline {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 .field-error-slot {
   display: block;
   min-height: 16px;
