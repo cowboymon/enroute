@@ -112,6 +112,7 @@ a {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 4px 0;
+  text-decoration: none;
 }
 
 .mark {
@@ -423,14 +424,49 @@ a {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  align-items: start;
+}
+
+.field-group {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.field-group__label {
+  justify-self: start;
+  padding: 2px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  background: var(--paper-2);
+  font: 800 9px var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .letter-form label {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   font: 800 10px var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+.field-hint {
+  font: 500 11px var(--font-body);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.field-error-slot {
+  display: block;
+  min-height: 16px;
+}
+
+.form-error-slot {
+  min-height: 20px;
+  margin-top: 6px;
 }
 
 .letter-form input,
@@ -1283,7 +1319,7 @@ a {
 
 .ticker div {
   min-width: max-content;
-  animation: ticker 22s linear infinite;
+  animation: ticker 95s linear infinite;
 }
 
 /* ---------- generic states ---------- */

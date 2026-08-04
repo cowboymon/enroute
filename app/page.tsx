@@ -9,11 +9,13 @@ type ContactType = "email";
 
 function ContactField({
   label,
+  hint,
   value,
   onValueChange,
   showError,
 }: {
   label: string;
+  hint: string;
   value: string;
   onValueChange: (v: string) => void;
   showError: boolean;
@@ -21,8 +23,8 @@ function ContactField({
   const trimmed = value.trim();
   const isValid = trimmed.length > 0 && EMAIL_RE.test(trimmed);
   return (
-    <div className="contact-field">
-      <span className="contact-field__label">{label}</span>
+    <label>
+      {label}
       <input
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
@@ -30,8 +32,11 @@ function ContactField({
         inputMode="email"
         required
       />
-      {showError && !isValid && <span className="error-text">Enter a valid email address.</span>}
-    </div>
+      <span className="field-hint">{hint}</span>
+      <span className="field-error-slot">
+        {showError && !isValid && <span className="error-text">Enter a valid email address.</span>}
+      </span>
+    </label>
   );
 }
 
@@ -41,8 +46,6 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
   const recipientContactType: ContactType = "email";
   const [recipientContact, setRecipientContact] = useState("");
-  const senderContactType: ContactType = "email";
-  const [senderContact, setSenderContact] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -64,10 +67,6 @@ export default function HomePage() {
       setError("Enter a valid email for them before sealing the note.");
       return;
     }
-    if (!isContactValid(senderContact)) {
-      setError("Enter a valid email for yourself before sealing the note.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -80,8 +79,6 @@ export default function HomePage() {
           body: message,
           recipientContactType,
           recipientContact: recipientContact.trim(),
-          senderContactType,
-          senderContact: senderContact.trim(),
         }),
       });
       if (!res.ok) {
@@ -105,7 +102,6 @@ export default function HomePage() {
     setRecipientName("");
     setMessage("");
     setRecipientContact("");
-    setSenderContact("");
     setTouched(false);
     setCopied(false);
     setSenderCopied(false);
@@ -199,40 +195,41 @@ export default function HomePage() {
         </div>
         <form className="letter-form" onSubmit={handleSubmit}>
           <div className="form-row">
-            <label>
-              Your name
-              <input
-                value={senderName}
-                onChange={(e) => setSenderName(e.target.value)}
-                placeholder="e.g. Mon"
-                maxLength={30}
-                required
+            <div className="field-group">
+              <span className="field-group__label">From</span>
+              <label>
+                Your name
+                <input
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  placeholder="e.g. Mon"
+                  maxLength={30}
+                  required
+                />
+                <span className="field-hint">So they know who it&apos;s from.</span>
+              </label>
+            </div>
+            <div className="field-group">
+              <span className="field-group__label">To</span>
+              <label>
+                Their name
+                <input
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  placeholder="e.g. Olive"
+                  maxLength={30}
+                  required
+                />
+                <span className="field-hint">So the note reads right.</span>
+              </label>
+              <ContactField
+                label="Their email address"
+                hint="Just for the link — we won't use it for anything else."
+                value={recipientContact}
+                onValueChange={setRecipientContact}
+                showError={touched}
               />
-            </label>
-            <label>
-              Their name
-              <input
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="e.g. Olive"
-                maxLength={30}
-                required
-              />
-            </label>
-          </div>
-          <div className="form-row">
-            <ContactField
-              label="Their email (so they get the link)"
-              value={recipientContact}
-              onValueChange={setRecipientContact}
-              showError={touched}
-            />
-            <ContactField
-              label="Your email (so you can watch it too)"
-              value={senderContact}
-              onValueChange={setSenderContact}
-              showError={touched}
-            />
+            </div>
           </div>
           <label className="message-label">
             Your message
@@ -247,7 +244,7 @@ export default function HomePage() {
               <b>{message.length}</b>/280
             </span>
           </label>
-          {error && <p className="error-text">{error}</p>}
+          <div className="form-error-slot">{error && <p className="error-text">{error}</p>}</div>
           <div className="form-footer">
             <span className="tiny-proof">Sealed until it arrives. Scout&apos;s honour.</span>
             <button className="button button--primary" type="submit" disabled={submitting}>

@@ -19,8 +19,6 @@ export async function POST(req: NextRequest) {
     senderName?: string;
     recipientName?: string;
     body?: string;
-    senderContactType?: string;
-    senderContact?: string;
     recipientContactType?: string;
     recipientContact?: string;
   };
@@ -52,14 +50,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const senderContact = validateContact(payload.senderContactType, payload.senderContact);
-  if (!senderContact) {
-    return NextResponse.json(
-      { error: "A valid sender email is required." },
-      { status: 400 }
-    );
-  }
-
   const message = await prisma.message.create({
     data: {
       senderName,
@@ -68,8 +58,6 @@ export async function POST(req: NextRequest) {
       status: "PENDING_CHOICE",
       recipientContactType: recipientContact.type,
       recipientContact: recipientContact.contact,
-      senderContactType: senderContact.type,
-      senderContact: senderContact.contact,
     },
   });
 
