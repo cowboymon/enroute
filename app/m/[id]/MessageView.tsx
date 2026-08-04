@@ -187,7 +187,7 @@ export default function MessageView({ id }: { id: string }) {
     const elapsed = Math.min(Math.max(now - created, 0), total);
     const pct = Math.min(1, Math.max(0, elapsed / total));
     const remainingMs = Math.max(arrival - now, 0);
-    return { pct, remainingMs };
+    return { pct, remainingMs, totalMs: total };
   }, [data, now]);
 
   const method = data?.chosenMethod ? getDeliveryMethod(data.chosenMethod) : undefined;
@@ -200,12 +200,20 @@ export default function MessageView({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method?.id]);
 
-  // Rotate the field note every 6-11s (randomised so the cadence doesn't
-  // feel mechanical) while in transit, re-picking whenever the pool itself
-  // changes (dispatch -> mid -> near-arrival) or on load.
+  // Rotate the field note on a randomised cadence while in transit,
+  // re-picking whenever the pool itself changes (dispatch -> mid ->
+  // near-arrival) or on load. The cadence scales with the journey's total
+  // duration (clamped 6-90s) so a 30-minute pigeon trip doesn't sit on the
+  // same note for as long as a 9-hour wombat one, and vice versa.
+  const totalMs = progress?.totalMs ?? 0;
   useEffect(() => {
     if (data?.status !== "IN_TRANSIT" || currentPool.length === 0) return;
     let timer: ReturnType<typeof setTimeout>;
+    const nextDelay = () => {
+      const base = Math.min(90000, Math.max(6000, totalMs * 0.002));
+      const jitter = 0.8 + Math.random() * 0.5; // +/- some variance so it's not purely mechanical
+      return Math.min(90000, Math.max(6000, base * jitter));
+    };
     const pick = () => {
       setFieldNote((prev) => {
         const samePool = prev.pool === currentPool || (prev.pool.length && prev.pool[0] === currentPool[0]);
@@ -213,12 +221,12 @@ export default function MessageView({ id }: { id: string }) {
         const { value, updatedRecentIds } = pickNoRepeat(currentPool, recent, 2);
         return { pool: currentPool, text: value, recent: updatedRecentIds };
       });
-      timer = setTimeout(pick, 6000 + Math.random() * 5000);
+      timer = setTimeout(pick, nextDelay());
     };
     pick();
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.status, currentPool.length, currentPool[0]]);
+  }, [data?.status, currentPool.length, currentPool[0], totalMs]);
 
   if (loading) {
     return (
