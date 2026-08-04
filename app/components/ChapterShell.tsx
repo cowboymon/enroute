@@ -46,8 +46,20 @@ const JOURNEY = [
   { key: "reveal", index: "04", title: "Open", note: "Worth it, hopefully" },
 ];
 
-const TICKER_TEXT =
-  "WOMBAT POST · BLIMP EXPRESS · SNAIL MAIL · PIGEON AIR · DONKEY DISPATCH · SMOKE SIGNAL · ";
+const TICKER_LINES = [
+  "Every message here takes the scenic route on purpose.",
+  "Fast was never the point.",
+  "Delivery speed may vary. Delivery charm will not.",
+  "Some messages arrive in minutes. Some arrive in their own time.",
+  "Nothing here has ever been sent by drone. That's a rule, not an accident.",
+  "The fastest route is rarely the one chosen.",
+  "Every carrier has somewhere to be. Eventually.",
+  "Patience is part of the delivery.",
+  "No two deliveries have ever taken the same path twice.",
+  "This is not the app for urgent news.",
+];
+
+const TICKER_TEXT = TICKER_LINES.join("  ·  ") + "  ·  ";
 
 /**
  * Shared journey chrome — topbar, the story rail on the left, and the
