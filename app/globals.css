@@ -1362,6 +1362,13 @@ a {
   white-space: nowrap;
 }
 
+@media (min-width: 721px) {
+  .ticker {
+    height: 26px;
+    font: 900 9px/24px var(--font-label);
+  }
+}
+
 .ticker div {
   min-width: max-content;
   animation: ticker 95s linear infinite;
