@@ -215,6 +215,12 @@ a {
   overflow: hidden;
 }
 
+.story-rail--custom {
+  padding: 0;
+  background: none;
+  overflow: visible;
+}
+
 .eyebrow,
 .kicker {
   font: 800 10px/1.2 var(--font-label);
@@ -906,8 +912,7 @@ a {
 /* ---------- transit ---------- */
 .transit-chapter {
   padding: 0;
-  display: grid;
-  grid-template-rows: minmax(400px, 1fr) auto;
+  height: 100%;
 }
 
 .scene {
@@ -915,7 +920,8 @@ a {
   overflow: hidden;
   background-position: center;
   background-size: cover;
-  border-bottom: 2px solid var(--ink);
+  height: 100%;
+  min-height: 400px;
 }
 
 .scene::after {
@@ -990,11 +996,12 @@ a {
 }
 
 .transit-panel {
-  padding: 24px clamp(22px, 4vw, 54px) 30px;
+  height: 100%;
+  padding: clamp(28px, 5vh, 48px) clamp(20px, 3vw, 32px);
   display: grid;
-  grid-template-columns: 1.25fr minmax(260px, 0.75fr);
-  gap: 50px;
-  align-items: center;
+  grid-template-rows: 1fr auto auto;
+  gap: 28px;
+  align-content: start;
   background: var(--dark);
   color: var(--paper);
 }
@@ -1515,6 +1522,18 @@ a {
   }
   .story-rail {
     display: none;
+  }
+  .story-rail--custom {
+    display: flex;
+    border-right: 0;
+    border-bottom: 2px solid var(--ink);
+  }
+  .story-rail--custom .transit-panel {
+    height: auto;
+  }
+  .scene {
+    height: 60vh;
+    min-height: 320px;
   }
   .workspace__chrome {
     height: 42px;

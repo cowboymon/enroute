@@ -327,8 +327,92 @@ export default function MessageView({ id }: { id: string }) {
       ? new Date(arrivalTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
       : "";
 
+    const transitPanel = (
+      <div className="transit-panel">
+        <div>
+          <span className="kicker">Currently somewhere out there</span>
+          <h2>{method.headline}</h2>
+          <p>{method.copy}</p>
+          <div className="field-note">
+            <div className="field-note__meta">
+              <span>Field report</span>
+            </div>
+            <div className="field-note__body">
+              <p key={fieldNote.text} style={{ animation: "note-in .42s var(--ease)" }}>
+                {fieldNote.text}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="progress-wrap">
+          <div className="progress-copy">
+            <span>Delivery progress</span>
+            <b>{Math.floor(pct * 100)}%</b>
+          </div>
+          <div className="progress-track">
+            <i style={{ width: `${pct * 100}%` }} />
+          </div>
+          <p className="progress-flavor">{progressNote}</p>
+        </div>
+        {!isSenderView && (
+          <div className="notify-consent">
+            {notifySaved ? (
+              <p className="tiny-proof">We&apos;ll nudge you when it arrives.</p>
+            ) : data.recipientContact && !editingNotifyContact ? (
+              <p className="notify-consent__compact">
+                Want a nudge when it arrives? We&apos;ll use{" "}
+                <button
+                  type="button"
+                  className="link-button"
+                  disabled={notifySaving}
+                  onClick={handleNotifySave}
+                >
+                  {notifySaving ? "Saving..." : data.recipientContact}
+                </button>{" "}
+                &mdash;{" "}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => setEditingNotifyContact(true)}
+                >
+                  use a different email
+                </button>
+                {notifyError && <span className="error-text"> {notifyError}</span>}
+              </p>
+            ) : (
+              <>
+                <span className="contact-field__label">Want a nudge when it arrives?</span>
+                <div className="notify-consent__row">
+                  <input
+                    value={notifyContact}
+                    onChange={(e) => setNotifyContact(e.target.value)}
+                    placeholder="you@example.com"
+                    inputMode="email"
+                  />
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={notifySaving}
+                    onClick={handleNotifySave}
+                  >
+                    <span>{notifySaving ? "Saving..." : "Notify me"}</span>
+                  </button>
+                </div>
+                {notifyError && <p className="error-text">{notifyError}</p>}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+
     return (
-      <ChapterShell stageIndex={2} status="One message in the wild" railDispatch={railDispatch} fullBleed>
+      <ChapterShell
+        stageIndex={2}
+        status="One message in the wild"
+        railDispatch={railDispatch}
+        railSlot={transitPanel}
+      >
         <section className="chapter transit-chapter" style={{ padding: 0 }}>
           <div className="scene" style={{ backgroundImage: `url('${method.scene}')` }}>
             <div
@@ -356,82 +440,6 @@ export default function MessageView({ id }: { id: string }) {
               </span>
               <b>{progress ? formatRemaining(progress.remainingMs) : "A little while"}</b>
             </div>
-          </div>
-          <div className="transit-panel">
-            <div>
-              <span className="kicker">Currently somewhere out there</span>
-              <h2>{method.headline}</h2>
-              <p>{method.copy}</p>
-              <div className="field-note">
-                <div className="field-note__meta">
-                  <span>Field report</span>
-                </div>
-                <div className="field-note__body">
-                  <p key={fieldNote.text} style={{ animation: "note-in .42s var(--ease)" }}>
-                    {fieldNote.text}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="progress-wrap">
-              <div className="progress-copy">
-                <span>Delivery progress</span>
-                <b>{Math.floor(pct * 100)}%</b>
-              </div>
-              <div className="progress-track">
-                <i style={{ width: `${pct * 100}%` }} />
-              </div>
-              <p className="progress-flavor">{progressNote}</p>
-            </div>
-            {!isSenderView && (
-              <div className="notify-consent">
-                {notifySaved ? (
-                  <p className="tiny-proof">We&apos;ll nudge you when it arrives.</p>
-                ) : data.recipientContact && !editingNotifyContact ? (
-                  <p className="notify-consent__compact">
-                    Want a nudge when it arrives? We&apos;ll use{" "}
-                    <button
-                      type="button"
-                      className="link-button"
-                      disabled={notifySaving}
-                      onClick={handleNotifySave}
-                    >
-                      {notifySaving ? "Saving..." : data.recipientContact}
-                    </button>{" "}
-                    &mdash;{" "}
-                    <button
-                      type="button"
-                      className="link-button"
-                      onClick={() => setEditingNotifyContact(true)}
-                    >
-                      use a different email
-                    </button>
-                    {notifyError && <span className="error-text"> {notifyError}</span>}
-                  </p>
-                ) : (
-                  <>
-                    <span className="contact-field__label">Want a nudge when it arrives?</span>
-                    <div className="notify-consent__row">
-                      <input
-                        value={notifyContact}
-                        onChange={(e) => setNotifyContact(e.target.value)}
-                        placeholder="you@example.com"
-                        inputMode="email"
-                      />
-                      <button
-                        className="button"
-                        type="button"
-                        disabled={notifySaving}
-                        onClick={handleNotifySave}
-                      >
-                        <span>{notifySaving ? "Saving..." : "Notify me"}</span>
-                      </button>
-                    </div>
-                    {notifyError && <p className="error-text">{notifyError}</p>}
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </section>
       </ChapterShell>

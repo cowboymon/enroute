@@ -77,14 +77,17 @@ export default function ChapterShell({
   railDispatch,
   children,
   fullBleed = false,
+  railSlot,
 }: {
   /** 0 = compose/handoff, 1 = choose, 2 = transit, 3 = reveal */
   stageIndex: number;
   status: string;
   railDispatch: string;
   children: React.ReactNode;
-  /** Drops the story rail entirely so the workspace (e.g. the transit scene) spans full width. */
+  /** Drops the left column entirely so the workspace spans full width. */
   fullBleed?: boolean;
+  /** Replaces the default rail content (pitch copy, journey list, stats) with custom content, keeping the same left-column slot. Ignored when fullBleed is set. */
+  railSlot?: React.ReactNode;
 }) {
   const clampedIndex = Math.max(0, Math.min(3, stageIndex));
 
@@ -118,7 +121,8 @@ export default function ChapterShell({
       </header>
 
       <main className={`shell${fullBleed ? " shell--full-bleed" : ""}`}>
-        {!fullBleed && (
+        {!fullBleed && railSlot && <aside className="story-rail story-rail--custom">{railSlot}</aside>}
+        {!fullBleed && !railSlot && (
           <aside className="story-rail">
             <div className="eyebrow">A slower messaging experiment</div>
             <h1>
