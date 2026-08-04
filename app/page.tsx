@@ -135,6 +135,7 @@ export default function HomePage() {
         stageIndex={0}
         status="Post office open"
         railDispatch={`Sealed for ${recipientName || "them"}`}
+        fullBleed
       >
         <section className="chapter handoff-chapter">
           <i
@@ -185,7 +186,7 @@ export default function HomePage() {
   }
 
   return (
-    <ChapterShell stageIndex={0} status="Post office open" railDispatch="Nothing in the wild yet">
+    <ChapterShell stageIndex={0} status="Post office open" railDispatch="Nothing in the wild yet" fullBleed>
       <section className="chapter compose-chapter">
         <div className="chapter-copy">
           <span className="kicker">From your brain to their inbox, eventually</span>

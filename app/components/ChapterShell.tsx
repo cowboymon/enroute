@@ -158,6 +158,7 @@ export default function ChapterShell({
         <section className="workspace" aria-live="polite">
           <div className="workspace__chrome">
             <span>{STAGE_LABELS[clampedIndex]}</span>
+            {fullBleed && <span className="workspace__dispatch">{railDispatch}</span>}
             <div className="chapter-dots" aria-hidden="true">
               {[0, 1, 2, 3].map((i) => (
                 <i key={i} className={i === clampedIndex ? "is-active" : undefined} />
